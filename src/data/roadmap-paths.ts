@@ -10,12 +10,25 @@ export const pathTaskId: Record<string, string> = {
   s2: "s2t2",
   s6: "s6t2",
   s7: "s7t4",
+  s11: "s11t1",
+  s15: "s15t1",
 };
 
 /** Not çevirici aracının bağlı olduğu görev satırı. */
 export const gradeConverterTaskId = "s1t5";
 
-export type PathResult = { title: string; text: string };
+export type PathResult = {
+  title: string;
+  text: string;
+  /** Task ids elsewhere in the roadmap that this outcome makes unnecessary. */
+  notApplicable?: string[];
+  /**
+   * Semantic key the cost calculator switches on — kept separate from
+   * `title` so rewording a result's copy never silently breaks the
+   * personalized "Toplam Tahmini Ücret" math in roadmap-extras.ts.
+   */
+  costTag?: string;
+};
 export type PathOption = { label: string; next?: PathQuestion; result?: PathResult };
 export type PathQuestion = { question: string; options: PathOption[] };
 
@@ -33,6 +46,7 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Muhtemelen doğrudan lisans başvurusu (H+)",
                 text: "Denkliğin muhtemelen doğrudan kabul için yeterli. Studienkolleg gerekmeden başvuru evraklarına geçebilirsin; yine de üniversitenin kendi şartını kontrol et.",
+                notApplicable: ["s1t4"],
               },
             },
             {
@@ -82,6 +96,8 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Dil şartını karşılıyorsun",
                 text: "Doğrudan lisans başvurusu için dil şartın hazır. TestDaF / DSH / Goethe C1 sınavına girip sertifikanı başvuru dosyana ekle.",
+                notApplicable: ["s2t4"],
+                costTag: "lang-certified",
               },
             },
             {
@@ -89,6 +105,7 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Studienkolleg seviyesindesin",
                 text: "Mevcut seviyen Studienkolleg için uygun olabilir. Lisans için C1'e çıkacak yoğun bir kurs planı (ortalama 3–6 ay) hesaba kat.",
+                costTag: "lang-course",
               },
             },
             {
@@ -96,6 +113,7 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Önce B1'e çıkman gerekiyor",
                 text: "A2 altı seviyeyle ne doğrudan lisans ne de Studienkolleg başvurusu mümkün. Ortalama 6–12 ay yoğun kurs süresiyle planla.",
+                costTag: "lang-course",
               },
             },
           ],
@@ -106,6 +124,8 @@ export const stepPaths: Record<string, PathQuestion> = {
         result: {
           title: "IELTS / TOEFL hedefle",
           text: "İngilizce bölümler için genelde IELTS 6.0–6.5 veya TOEFL 80+ istenir. Sınav tarihini erken rezerve et, sertifika geçerlilik süresi genelde 2 yıldır.",
+          notApplicable: ["s2t2"],
+          costTag: "lang-english",
         },
       },
       {
@@ -113,6 +133,7 @@ export const stepPaths: Record<string, PathQuestion> = {
         result: {
           title: "Her iki dil şartını da netleştir",
           text: "Karma programlarda genelde bir dil için sertifika, diğeri için asgari seviye istenir. Bölümün sayfasındaki tam dil şartını maddeler halinde çıkar.",
+          costTag: "lang-mixed",
         },
       },
     ],
@@ -126,6 +147,7 @@ export const stepPaths: Record<string, PathQuestion> = {
         result: {
           title: "Doğrudan devam edebilirsin",
           text: "Tebrikler — şartsız kabulle finansman ve vize adımlarına (Adım 7) geçebilirsin.",
+          notApplicable: ["s6t2"],
         },
       },
       {
@@ -168,6 +190,8 @@ export const stepPaths: Record<string, PathQuestion> = {
         result: {
           title: "Verpflichtungserklärung yolu",
           text: "Garantörün kendi Ausländerbehörde'sinden taahhüt belgesi (Verpflichtungserklärung) alması gerekir. Gelir ve oturum şartlarını önceden kontrol edin — Sperrkonto açmana gerek kalmayabilir.",
+          notApplicable: ["s7t2", "s7t3"],
+          costTag: "finance-no-blocked-account",
         },
       },
       {
@@ -180,6 +204,8 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Burs belgesi finans kanıtı olur",
                 text: "Burs yazın süre ve aylık tutarı açıkça belirtiyorsa, çoğu durumda Sperrkonto'ya gerek kalmaz. Yazının konsolosluk şartlarını karşıladığını doğrula.",
+                notApplicable: ["s7t2", "s7t3"],
+                costTag: "finance-no-blocked-account",
               },
             },
             {
@@ -187,6 +213,8 @@ export const stepPaths: Record<string, PathQuestion> = {
               result: {
                 title: "Sperrkonto açman gerekiyor",
                 text: "Güncel yıllık yasal tutarı konsolosluk sayfasından doğrulayıp bir sağlayıcı (Expatrio, Fintiba, Coracle vb.) üzerinden bloke hesap aç.",
+                notApplicable: ["s7t4"],
+                costTag: "finance-blocked-account",
               },
             },
           ],

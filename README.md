@@ -1,29 +1,68 @@
-# Welcome to your Lovable project
+# Almanya Yol Haritası
 
-This project was built with [Lovable](https://lovable.dev).
+Türkiye'den Almanya'ya üniversite eğitimi için taşınmak isteyen öğrenciler için
+interaktif bir yol haritası: 5 etap, 17 adım, her adımda ara kontrol listeleri,
+gereken evraklar ve nereden alınacağı, ayrıca tahmini ücretler.
 
-## Build with Lovable
+İlerleme tarayıcıda (localStorage) saklanır, tek sayfalık bir uygulamadır.
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## Tech stack
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- [TanStack Start](https://tanstack.com/start) (React + file-based routing, SSR)
+- TypeScript
+- Tailwind CSS v4
+- Radix UI primitivleri + [shadcn/ui](https://ui.shadcn.com) tabanlı bileşenler
+- Cloudflare Workers (deploy hedefi, Nitro üzerinden)
 
-## Development
+## Geliştirme
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Node.js gerekli. Paket yöneticisi olarak [Bun](https://bun.sh) önerilir, npm de çalışır.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+bun install
+bun run dev
+# veya
+npm install
 npm run dev
 ```
 
-## Built with
+Uygulama varsayılan olarak http://localhost:3000 üzerinde açılır.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## Kullanılabilir komutlar
+
+| Komut           | Açıklama                                  |
+| --------------- | ------------------------------------------ |
+| `dev`           | Geliştirme sunucusunu başlatır              |
+| `build`         | Production build alır (Cloudflare hedefi)   |
+| `build:dev`     | Development modunda build alır              |
+| `preview`       | Production build'i yerelde önizler          |
+| `lint`          | ESLint ile kod kontrolü yapar                |
+| `format`        | Prettier ile kodu biçimlendirir              |
+
+## Proje yapısı
+
+```
+src/
+  routes/          TanStack Router route'ları (ör. index.tsx = ana sayfa)
+  components/      UI bileşenleri (roadmap-özel + shadcn/ui tabanlılar)
+  data/            Rota/adım/ücret/evrak verisi
+  hooks/           İlerleme ve yol seçimi state hook'ları
+  lib/             Yardımcı fonksiyonlar
+  config/          Site geneli sabitler (SEO vb.)
+```
+
+## Deploy
+
+Proje Cloudflare Workers'a `wrangler.json` üzerinden deploy edilecek şekilde
+yapılandırılmıştır:
+
+```sh
+npm run build
+npx wrangler deploy
+```
+
+## SEO
+
+`src/config/site.ts` içindeki `SITE_URL` sabiti, canonical/OG etiketleri ve
+`public/sitemap.xml` ile `public/robots.txt`'teki adresle birlikte, site
+gerçek domain'ine taşındığında güncellenmelidir.

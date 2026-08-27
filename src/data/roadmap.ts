@@ -42,11 +42,15 @@ export const phases: Phase[] = [
             label: "YKS yerleştirme sonucunu ve puan türünü not al",
             hint: "Çoğu üniversite, seçtiğin bölümle aynı alanda YKS yerleşimi bekler.",
           },
-          { id: "s1t3", label: "Doğrudan lisans / Studienkolleg / 1 yıl üniversite okuma şartını netleştir" },
+          {
+            id: "s1t3",
+            label: "Doğrudan lisans / Studienkolleg / 1 yıl üniversite okuma şartını netleştir",
+          },
           { id: "s1t4", label: "Gerekliyse Studienkolleg kur tipini belirle (T, M, W, G, S)" },
           {
             id: "s1t5",
-            label: "Not ortalamanı sitedeki not çeviriciyle Alman sistemine çevir (Bavyera formülü)",
+            label:
+              "Not ortalamanı sitedeki not çeviriciyle Alman sistemine çevir (Bavyera formülü)",
           },
         ],
         warning:
@@ -61,7 +65,10 @@ export const phases: Phase[] = [
         duration: "3–12 ay",
         tasks: [
           { id: "s2t1", label: "Bölümün eğitim dilini belirle (Almanca / İngilizce / karma)" },
-          { id: "s2t2", label: "Almanca için hedef seviyeyi seç: B1–B2 (Studienkolleg) veya C1 (lisans)" },
+          {
+            id: "s2t2",
+            label: "Almanca için hedef seviyeyi seç: B1–B2 (Studienkolleg) veya C1 (lisans)",
+          },
           { id: "s2t3", label: "Sınav tarihini erken rezerve et (kontenjanlar hızlı doluyor)" },
           { id: "s2t4", label: "İngilizce bölüm için IELTS 6.0–6.5 / TOEFL 80+ hedefle" },
           { id: "s2t5", label: "Sertifikanın geçerlilik süresini kontrol et (genelde 2 yıl)" },
@@ -74,7 +81,10 @@ export const phases: Phase[] = [
         subtitle: "Başvuru şartları, NC (not ortalaması barajı) ve son başvuru tarihlerini incele.",
         duration: "2–4 hafta",
         tasks: [
-          { id: "s3t1", label: "10–15 üniversiteden oluşan bir liste kur (garanti / hedef / iddialı)" },
+          {
+            id: "s3t1",
+            label: "10–15 üniversiteden oluşan bir liste kur (garanti / hedef / iddialı)",
+          },
           { id: "s3t2", label: "Her bölüm için NC değerini ve geçen yılın barajını yaz" },
           { id: "s3t3", label: "Başvuru dönemini seç: Kış (15 Temmuz) / Yaz (15 Ocak)" },
           { id: "s3t4", label: "Başvurunun uni-assist mi, doğrudan portal mı olduğunu işaretle" },
@@ -155,7 +165,10 @@ export const phases: Phase[] = [
           { id: "s7t1", label: "Güncel yıllık yasal tutarı konsolosluk sayfasından doğrula" },
           { id: "s7t2", label: "Bloke hesap sağlayıcısı seç ve hesabı aç" },
           { id: "s7t3", label: "Parayı transfer et ve bloke onay yazısını al" },
-          { id: "s7t4", label: "Alternatif: garantör (Verpflichtungserklärung) veya burs belgesi hazırla" },
+          {
+            id: "s7t4",
+            label: "Alternatif: garantör (Verpflichtungserklärung) veya burs belgesi hazırla",
+          },
         ],
       },
       {
@@ -280,7 +293,10 @@ export const phases: Phase[] = [
         duration: "1–2 hafta",
         tasks: [
           { id: "s15t1", label: "Semesterbeitrag ödemesini yap" },
-          { id: "s15t2", label: "Sigorta şirketinden üniversiteye elektronik bildirim gönderilsin" },
+          {
+            id: "s15t2",
+            label: "Sigorta şirketinden üniversiteye elektronik bildirim gönderilsin",
+          },
           { id: "s15t3", label: "Kayıt evraklarını (pasaport, vize, kabul) teslim et" },
           { id: "s15t4", label: "Öğrenci kartı + Semesterticket ve üniversite e-postasını al" },
           { id: "s15t5", label: "Immatrikulationsbescheinigung belgesini indir" },
@@ -308,7 +324,10 @@ export const phases: Phase[] = [
         duration: "4–10 hafta",
         tasks: [
           { id: "s17t1", label: "Vize bitiminden en az 6 hafta önce randevu al" },
-          { id: "s17t2", label: "Dosyayı hazırla: Anmeldung, sigorta, finans kanıtı, öğrenci belgesi" },
+          {
+            id: "s17t2",
+            label: "Dosyayı hazırla: Anmeldung, sigorta, finans kanıtı, öğrenci belgesi",
+          },
           { id: "s17t3", label: "Biyometrik fotoğraf + harç ödemesi" },
           { id: "s17t4", label: "Elektronik oturum kartını (eAT) teslim al" },
           { id: "s17t5", label: "Çalışma izni notunu kontrol et (yılda 140 tam gün)" },

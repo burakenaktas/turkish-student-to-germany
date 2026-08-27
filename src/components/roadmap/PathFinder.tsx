@@ -1,72 +1,19 @@
-import { useEffect, useState } from "react";
 import { Check, RotateCcw } from "lucide-react";
-import { stepPaths, type PathOption, type PathQuestion } from "@/data/roadmap-paths";
+import { stepPaths } from "@/data/roadmap-paths";
+import { usePathAnswers } from "@/hooks/use-path-answers";
+import { resolvePath } from "@/lib/path-resolver";
 import { cn } from "@/lib/utils";
-
-const KEY = "almanya-roadmap-pathfinder-v1";
-
-function readStore(): Record<string, number[]> {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Record<string, number[]>) : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeStore(store: Record<string, number[]>) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(store));
-  } catch {
-    /* ignore quota errors */
-  }
-}
 
 type Props = { stepId: string };
 
 export function PathFinder({ stepId }: Props) {
   const root = stepPaths[stepId];
-  const [choices, setChoices] = useState<number[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const { answers, hydrated, setChoices } = usePathAnswers();
 
-  useEffect(() => {
-    setChoices(readStore()[stepId] ?? []);
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepId]);
+  if (!root || !hydrated) return null;
 
-  if (!root) return null;
-
-  function commit(next: number[]) {
-    setChoices(next);
-    const store = readStore();
-    if (next.length === 0) delete store[stepId];
-    else store[stepId] = next;
-    writeStore(store);
-  }
-
-  // walk the tree with the current choices, collecting the answered
-  // question + chosen option label at each level for the breadcrumb
-  const trail: { question: string; label: string }[] = [];
-  let node: PathQuestion | undefined = root;
-  let result: PathOption["result"];
-
-  for (const idx of choices) {
-    if (!node) break;
-    const opt: PathOption | undefined = node.options[idx];
-    if (!opt) break;
-    trail.push({ question: node.question, label: opt.label });
-    if (opt.result) {
-      result = opt.result;
-      node = undefined;
-      break;
-    }
-    node = opt.next;
-  }
-
-  const current = result ? undefined : node;
-
-  if (!hydrated) return null;
+  const choices = answers[stepId] ?? [];
+  const { trail, current, result } = resolvePath(root, choices);
 
   return (
     <div>
@@ -77,7 +24,7 @@ export function PathFinder({ stepId }: Props) {
               key={i}
               type="button"
               title={t.question}
-              onClick={() => commit(choices.slice(0, i))}
+              onClick={() => setChoices(stepId, choices.slice(0, i))}
               className="cursor-pointer rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-mono text-[0.65rem] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               {t.label}
@@ -85,7 +32,7 @@ export function PathFinder({ stepId }: Props) {
           ))}
           <button
             type="button"
-            onClick={() => commit([])}
+            onClick={() => setChoices(stepId, [])}
             className="inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[0.65rem] text-muted-foreground transition-colors hover:text-destructive"
           >
             <RotateCcw className="size-3" /> Baştan başla
@@ -111,7 +58,7 @@ export function PathFinder({ stepId }: Props) {
               <button
                 key={opt.label}
                 type="button"
-                onClick={() => commit([...choices, i])}
+                onClick={() => setChoices(stepId, [...choices, i])}
                 className={cn(
                   "cursor-pointer rounded-md border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-accent",
                 )}

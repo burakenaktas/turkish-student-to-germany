@@ -22,7 +22,11 @@ export const stepCosts: Record<string, CostItem[]> = {
   ],
   s3: [{ label: "Araştırma ve liste kurma", amount: "0 €" }],
   s4: [
-    { label: "Yeminli tercüme", amount: "10 – 25 € / sayfa", note: "Diploma + transkript ≈ 5-8 sayfa" },
+    {
+      label: "Yeminli tercüme",
+      amount: "10 – 25 € / sayfa",
+      note: "Diploma + transkript ≈ 5-8 sayfa",
+    },
     { label: "Noter onayı", amount: "15 – 30 € / belge" },
     { label: "Apostil (kaymakamlık)", amount: "0 – 10 €" },
     { label: "Pasaport (10 yıl)", amount: "≈ 90 – 120 €" },
@@ -35,13 +39,21 @@ export const stepCosts: Record<string, CostItem[]> = {
   ],
   s6: [{ label: "Kabul mektubu", amount: "0 €", note: "Üniversite ücret almaz" }],
   s7: [
-    { label: "Bloke hesap yıllık tutar", amount: "≈ 11.904 €", note: "992 €/ay × 12 (güncel tutarı doğrula)" },
+    {
+      label: "Bloke hesap yıllık tutar",
+      amount: "≈ 11.904 €",
+      note: "992 €/ay × 12 (güncel tutarı doğrula)",
+    },
     { label: "Bloke hesap açılış ücreti", amount: "49 – 150 €" },
     { label: "Aylık hesap işletim ücreti", amount: "0 – 5 € / ay" },
   ],
   s8: [
     { label: "Seyahat sağlık sigortası (vize için)", amount: "30 – 80 €" },
-    { label: "Öğrenci sağlık sigortası", amount: "≈ 120 – 145 € / ay", note: "TK, AOK, Barmer vb." },
+    {
+      label: "Öğrenci sağlık sigortası",
+      amount: "≈ 120 – 145 € / ay",
+      note: "TK, AOK, Barmer vb.",
+    },
   ],
   s9: [
     { label: "Ulusal vize harcı (Typ D)", amount: "75 €" },
@@ -65,10 +77,18 @@ export const stepCosts: Record<string, CostItem[]> = {
   s13: [{ label: "Anmeldung", amount: "0 €", note: "Bazı şehirlerde 0 – 15 €" }],
   s14: [{ label: "Öğrenci Girokonto", amount: "0 €", note: "Öğrenciye ücretsiz seçenekler var" }],
   s15: [
-    { label: "Semesterbeitrag (dönem harcı)", amount: "150 – 400 € / dönem", note: "Semesterticket dahil" },
+    {
+      label: "Semesterbeitrag (dönem harcı)",
+      amount: "150 – 400 € / dönem",
+      note: "Semesterticket dahil",
+    },
   ],
   s16: [
-    { label: "Rundfunkbeitrag (yayın harcı)", amount: "18,36 € / ay", note: "Hane başına, WG'de paylaşılır" },
+    {
+      label: "Rundfunkbeitrag (yayın harcı)",
+      amount: "18,36 € / ay",
+      note: "Hane başına, WG'de paylaşılır",
+    },
   ],
   s17: [
     { label: "Oturum izni (eAT) harcı", amount: "100 – 110 €" },
@@ -129,87 +149,210 @@ export const costSavingTips: SavingTip[] = [
 
 export const stepDocs: Record<string, DocItem[]> = {
   s1: [
-    { name: "Lise diploması", how: "Mezun olduğun liseden aslı; kayıp ise il/ilçe MEM'den ikinci nüsha." },
-    { name: "YKS sonuç + yerleştirme belgesi", how: "ÖSYM AİS (ais.osym.gov.tr) → barkodlu PDF olarak indir." },
+    {
+      name: "Lise diploması",
+      how: "Mezun olduğun liseden aslı; kayıp ise il/ilçe MEM'den ikinci nüsha.",
+    },
+    {
+      name: "YKS sonuç + yerleştirme belgesi",
+      how: "ÖSYM AİS (ais.osym.gov.tr) → barkodlu PDF olarak indir.",
+    },
     {
       name: "Denklik yol testi sonucu",
       how: "Adım kartındaki 'Yol testi' sekmesinden birkaç soruyu yanıtla; sonucu ekran görüntüsü alıp sakla. Gerekirse anabin.kmk.org yedek kaynak olarak kullanılabilir.",
     },
   ],
   s2: [
-    { name: "Dil sertifikası", how: "Goethe-Institut / telc merkezi / TestDaF merkezinde sınava gir; sertifika 2-6 hafta içinde teslim edilir." },
-    { name: "Kurs katılım belgesi", how: "Dil okulundan seviye bitiminde talep et (bazı üniversiteler ek kanıt olarak kabul eder)." },
+    {
+      name: "Dil sertifikası",
+      how: "Goethe-Institut / telc merkezi / TestDaF merkezinde sınava gir; sertifika 2-6 hafta içinde teslim edilir.",
+    },
+    {
+      name: "Kurs katılım belgesi",
+      how: "Dil okulundan seviye bitiminde talep et (bazı üniversiteler ek kanıt olarak kabul eder).",
+    },
   ],
   s3: [
-    { name: "Bölüm şart listesi (Zulassungsvoraussetzungen)", how: "Üniversitenin bölüm sayfasından PDF olarak indir, tarih notu düş." },
+    {
+      name: "Bölüm şart listesi (Zulassungsvoraussetzungen)",
+      how: "Üniversitenin bölüm sayfasından PDF olarak indir, tarih notu düş.",
+    },
   ],
   s4: [
     { name: "Transkript (9-12. sınıf)", how: "Liseden ıslak imzalı ve mühürlü olarak al." },
-    { name: "Yeminli tercümeler", how: "Noter onaylı yeminli tercümana ver; Almanca (veya İngilizce) çeviri + tercüman kaşesi." },
-    { name: "Apostil", how: "Noter onayından sonra kaymakamlık (idari belgeler) veya adliye (adli belgeler) apostil şerhi verir." },
-    { name: "Pasaport", how: "Randevu: randevu.nvi.gov.tr → nüfus müdürlüğü; en az 1,5 yıl geçerli olmalı." },
-    { name: "Europass CV + motivasyon mektubu", how: "europa.eu/europass üzerinden oluştur; motivasyon mektubunu her bölüme özel yaz." },
+    {
+      name: "Yeminli tercümeler",
+      how: "Noter onaylı yeminli tercümana ver; Almanca (veya İngilizce) çeviri + tercüman kaşesi.",
+    },
+    {
+      name: "Apostil",
+      how: "Noter onayından sonra kaymakamlık (idari belgeler) veya adliye (adli belgeler) apostil şerhi verir.",
+    },
+    {
+      name: "Pasaport",
+      how: "Randevu: randevu.nvi.gov.tr → nüfus müdürlüğü; en az 1,5 yıl geçerli olmalı.",
+    },
+    {
+      name: "Europass CV + motivasyon mektubu",
+      how: "europa.eu/europass üzerinden oluştur; motivasyon mektubunu her bölüme özel yaz.",
+    },
     { name: "Biyometrik fotoğraf", how: "35×45 mm, beyaz fon, son 6 ay içinde çekilmiş." },
   ],
   s5: [
-    { name: "uni-assist başvuru dosyası", how: "my.uni-assist.de hesabı aç, taranmış evrakları yükle, ücreti kartla öde." },
+    {
+      name: "uni-assist başvuru dosyası",
+      how: "my.uni-assist.de hesabı aç, taranmış evrakları yükle, ücreti kartla öde.",
+    },
     { name: "VPD", how: "uni-assist üzerinden ayrı başvuru; sonuç PDF olarak hesabına düşer." },
-    { name: "Ödeme makbuzları", how: "uni-assist ve üniversite portalındaki ödeme onaylarını PDF arşivine ekle." },
+    {
+      name: "Ödeme makbuzları",
+      how: "uni-assist ve üniversite portalındaki ödeme onaylarını PDF arşivine ekle.",
+    },
   ],
   s6: [
-    { name: "Zulassungsbescheid (kabul mektubu)", how: "Üniversite portalından indir; vize dosyası için çıktısı gerekir." },
-    { name: "Şart listesi (bedingte Zulassung)", how: "Kabul mektubundaki koşulları madde madde çıkar ve takvime ekle." },
+    {
+      name: "Zulassungsbescheid (kabul mektubu)",
+      how: "Üniversite portalından indir; vize dosyası için çıktısı gerekir.",
+    },
+    {
+      name: "Şart listesi (bedingte Zulassung)",
+      how: "Kabul mektubundaki koşulları madde madde çıkar ve takvime ekle.",
+    },
   ],
   s7: [
-    { name: "Sperrkonto (bloke hesap) onay yazısı", how: "Coracle / Expatrio / Fintiba / Deutsche Bank üzerinden hesap aç, parayı SWIFT ile transfer et, onay yazısı e-posta ile gelir." },
-    { name: "Alternatif: Verpflichtungserklärung", how: "Almanya'daki garantör, kendi Ausländerbehörde'sinden taahhüt belgesi alır." },
-    { name: "Burs belgesi", how: "DAAD / vakıf / kurum yazısı: süre ve aylık tutar açıkça yazılı olmalı." },
+    {
+      name: "Sperrkonto (bloke hesap) onay yazısı",
+      how: "Coracle / Expatrio / Fintiba / Deutsche Bank üzerinden hesap aç, parayı SWIFT ile transfer et, onay yazısı e-posta ile gelir.",
+    },
+    {
+      name: "Alternatif: Verpflichtungserklärung",
+      how: "Almanya'daki garantör, kendi Ausländerbehörde'sinden taahhüt belgesi alır.",
+    },
+    {
+      name: "Burs belgesi",
+      how: "DAAD / vakıf / kurum yazısı: süre ve aylık tutar açıkça yazılı olmalı.",
+    },
   ],
   s8: [
-    { name: "Seyahat sağlık sigortası poliçesi", how: "Türkiye'deki sigorta şirketinden Schengen/ulusal vize uyumlu poliçe; teminat en az 30.000 €." },
-    { name: "Öğrenci sağlık sigortası onayı", how: "TK / AOK / Barmer online başvurusu; kabul mektubu ve pasaport yüklenir." },
-    { name: "M10 sigorta bildirimi", how: "Sigorta şirketinden üniversiteye elektronik olarak gönderilmesini talep et." },
+    {
+      name: "Seyahat sağlık sigortası poliçesi",
+      how: "Türkiye'deki sigorta şirketinden Schengen/ulusal vize uyumlu poliçe; teminat en az 30.000 €.",
+    },
+    {
+      name: "Öğrenci sağlık sigortası onayı",
+      how: "TK / AOK / Barmer online başvurusu; kabul mektubu ve pasaport yüklenir.",
+    },
+    {
+      name: "M10 sigorta bildirimi",
+      how: "Sigorta şirketinden üniversiteye elektronik olarak gönderilmesini talep et.",
+    },
   ],
   s9: [
-    { name: "Vize başvuru formu (VIDEX)", how: "videx-national.diplo.de üzerinden doldur, çıktı al ve imzala." },
-    { name: "Randevu onayı", how: "Konsolosluk aracı kurumu (iDATA vb.) üzerinden randevu al, onay e-postasını yazdır." },
-    { name: "Evrak seti (2-3 takım)", how: "Kabul, finans kanıtı, sigorta, diploma, transkript, dil belgesi, pasaport fotokopileri." },
+    {
+      name: "Vize başvuru formu (VIDEX)",
+      how: "videx-national.diplo.de üzerinden doldur, çıktı al ve imzala.",
+    },
+    {
+      name: "Randevu onayı",
+      how: "Konsolosluk aracı kurumu (iDATA vb.) üzerinden randevu al, onay e-postasını yazdır.",
+    },
+    {
+      name: "Evrak seti (2-3 takım)",
+      how: "Kabul, finans kanıtı, sigorta, diploma, transkript, dil belgesi, pasaport fotokopileri.",
+    },
   ],
   s10: [
-    { name: "Vizeli pasaport", how: "Aracı kurumdan teslim al; süre, giriş sayısı ve çalışma notunu kontrol et." },
+    {
+      name: "Vizeli pasaport",
+      how: "Aracı kurumdan teslim al; süre, giriş sayısı ve çalışma notunu kontrol et.",
+    },
     { name: "Uçuş bileti", how: "Kayıt tarihinden en az 2 hafta önce varacak şekilde al." },
   ],
   s11: [
-    { name: "Kira sözleşmesi (Mietvertrag)", how: "Yurt veya ev sahibi tarafından imzalanır; PDF kopyasını sakla." },
-    { name: "Wohnungsgeberbestätigung", how: "Ev sahibinden/yurt yönetiminden taşındıktan sonra talep et — Anmeldung için zorunlu." },
-    { name: "Depozito transfer kanıtı", how: "Banka havale dekontunu sakla; çıkışta geri alım için gerekir." },
+    {
+      name: "Kira sözleşmesi (Mietvertrag)",
+      how: "Yurt veya ev sahibi tarafından imzalanır; PDF kopyasını sakla.",
+    },
+    {
+      name: "Wohnungsgeberbestätigung",
+      how: "Ev sahibinden/yurt yönetiminden taşındıktan sonra talep et — Anmeldung için zorunlu.",
+    },
+    {
+      name: "Depozito transfer kanıtı",
+      how: "Banka havale dekontunu sakla; çıkışta geri alım için gerekir.",
+    },
   ],
   s12: [
-    { name: "Orijinal evrak dosyası", how: "Tüm asıllar el bagajında; kopyalar buluta yüklü olsun." },
-    { name: "Ev devir tutanağı (Übergabeprotokoll)", how: "Anahtar teslimi sırasında ev sahibiyle birlikte doldurup imzala." },
+    {
+      name: "Orijinal evrak dosyası",
+      how: "Tüm asıllar el bagajında; kopyalar buluta yüklü olsun.",
+    },
+    {
+      name: "Ev devir tutanağı (Übergabeprotokoll)",
+      how: "Anahtar teslimi sırasında ev sahibiyle birlikte doldurup imzala.",
+    },
   ],
   s13: [
     { name: "Anmeldeformular", how: "Şehrin Bürgeramt sitesinden indir, doldur." },
-    { name: "Wohnungsgeberbestätigung", how: "Ev sahibinin imzaladığı belge; onsuz kayıt yapılmaz." },
-    { name: "Anmeldebestätigung", how: "Randevu sonunda elden verilir — banka, sigorta ve oturum için asıl belge." },
+    {
+      name: "Wohnungsgeberbestätigung",
+      how: "Ev sahibinin imzaladığı belge; onsuz kayıt yapılmaz.",
+    },
+    {
+      name: "Anmeldebestätigung",
+      how: "Randevu sonunda elden verilir — banka, sigorta ve oturum için asıl belge.",
+    },
   ],
   s14: [
-    { name: "Girokonto başvurusu", how: "N26 / Commerzbank / Sparkasse; Anmeldebestätigung + pasaport + öğrenci belgesi." },
-    { name: "Kimlik doğrulama", how: "Video-Ident (online) veya Post-Ident (postanede) ile tamamlanır." },
+    {
+      name: "Girokonto başvurusu",
+      how: "N26 / Commerzbank / Sparkasse; Anmeldebestätigung + pasaport + öğrenci belgesi.",
+    },
+    {
+      name: "Kimlik doğrulama",
+      how: "Video-Ident (online) veya Post-Ident (postanede) ile tamamlanır.",
+    },
   ],
   s15: [
-    { name: "Immatrikulation başvuru formu", how: "Üniversite portalından indir, imzala, kayıt ofisine teslim et." },
-    { name: "Semesterbeitrag dekontu", how: "Üniversitenin IBAN'ına havale; açıklamaya matrikül/başvuru numarasını yaz." },
-    { name: "Immatrikulationsbescheinigung", how: "Kayıt sonrası portaldan indir — oturum izni ve indirimler için gerekli." },
+    {
+      name: "Immatrikulation başvuru formu",
+      how: "Üniversite portalından indir, imzala, kayıt ofisine teslim et.",
+    },
+    {
+      name: "Semesterbeitrag dekontu",
+      how: "Üniversitenin IBAN'ına havale; açıklamaya matrikül/başvuru numarasını yaz.",
+    },
+    {
+      name: "Immatrikulationsbescheinigung",
+      how: "Kayıt sonrası portaldan indir — oturum izni ve indirimler için gerekli.",
+    },
   ],
   s16: [
-    { name: "Steuer-ID mektubu", how: "Anmeldung'dan 2-6 hafta sonra posta ile adresine gelir; gelmezse Finanzamt'tan talep et." },
-    { name: "Rundfunkbeitrag kaydı", how: "rundfunkbeitrag.de üzerinden kayıt ol veya WG'deki mevcut kayda ekle." },
+    {
+      name: "Steuer-ID mektubu",
+      how: "Anmeldung'dan 2-6 hafta sonra posta ile adresine gelir; gelmezse Finanzamt'tan talep et.",
+    },
+    {
+      name: "Rundfunkbeitrag kaydı",
+      how: "rundfunkbeitrag.de üzerinden kayıt ol veya WG'deki mevcut kayda ekle.",
+    },
   ],
   s17: [
-    { name: "Aufenthaltstitel başvuru formu", how: "Ausländerbehörde sitesinden indir veya randevuda verilir." },
-    { name: "Finans kanıtı (güncel)", how: "Bloke hesap bakiye yazısı veya garantör belgesi — son 1 ay içinde alınmış." },
-    { name: "Öğrenci belgesi + sigorta yazısı", how: "Üniversite portalından ve sigorta şirketinden güncel tarihli al." },
-    { name: "Fiktionsbescheinigung", how: "Randevu vize bitiminden sonraya kaldıysa Ausländerbehörde'den talep et." },
+    {
+      name: "Aufenthaltstitel başvuru formu",
+      how: "Ausländerbehörde sitesinden indir veya randevuda verilir.",
+    },
+    {
+      name: "Finans kanıtı (güncel)",
+      how: "Bloke hesap bakiye yazısı veya garantör belgesi — son 1 ay içinde alınmış.",
+    },
+    {
+      name: "Öğrenci belgesi + sigorta yazısı",
+      how: "Üniversite portalından ve sigorta şirketinden güncel tarihli al.",
+    },
+    {
+      name: "Fiktionsbescheinigung",
+      how: "Randevu vize bitiminden sonraya kaldıysa Ausländerbehörde'den talep et.",
+    },
   ],
 };

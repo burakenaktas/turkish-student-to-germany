@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://almanya-yol-haritasi.com/sitemap.xml

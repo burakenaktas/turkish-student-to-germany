@@ -6,6 +6,8 @@ import { stepPaths, pathTaskId, gradeConverterTaskId } from "@/data/roadmap-path
 import { stepImages } from "@/data/step-images";
 import { PathFinder } from "@/components/roadmap/PathFinder";
 import { GradeConverter } from "@/components/roadmap/GradeConverter";
+import { usePathAnswers } from "@/hooks/use-path-answers";
+import { resolvePath } from "@/lib/path-resolver";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -26,8 +28,14 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
   const docs = stepDocs[step.id] ?? [];
   const photo = stepImages[step.id];
 
+  const { answers } = usePathAnswers();
+  const pathRoot = stepPaths[step.id];
+  const pathResult = pathRoot ? resolvePath(pathRoot, answers[step.id] ?? []).result : undefined;
+  const notApplicable = new Set(pathResult?.notApplicable ?? []);
+
   function toolFor(taskId: string): { type: "path" | "grade"; label: string } | null {
-    if (pathTaskId[step.id] === taskId && stepPaths[step.id]) return { type: "path", label: "Yol testi" };
+    if (pathTaskId[step.id] === taskId && stepPaths[step.id])
+      return { type: "path", label: "Yol testi" };
     if (taskId === gradeConverterTaskId) return { type: "grade", label: "Not çevirici" };
     return null;
   }
@@ -62,7 +70,12 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
       <header className="flex items-start gap-4 p-5">
         <button
           type="button"
-          onClick={() => onSetMany(step.tasks.map((t) => t.id), !isDone)}
+          onClick={() =>
+            onSetMany(
+              step.tasks.map((t) => t.id),
+              !isDone,
+            )
+          }
           aria-label={isDone ? `${step.title} adımını geri al` : `${step.title} adımını tamamla`}
           className={cn(
             "grid size-10 shrink-0 cursor-pointer place-items-center rounded-md font-mono text-sm font-semibold transition-colors",
@@ -88,6 +101,11 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
               <Clock className="size-3" />
               {step.duration}
             </span>
+            {pathResult && (
+              <span className="gold-badge inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[0.65rem] font-semibold tracking-wide">
+                <Route className="size-3" /> {pathResult.title}
+              </span>
+            )}
           </div>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.subtitle}</p>
         </div>
@@ -96,7 +114,10 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
       <div className="flex items-center gap-3 border-t border-border px-5 py-3">
         <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
           <div
-            className={cn("h-full transition-[width] duration-500", isDone ? "landed-badge" : "gate-badge")}
+            className={cn(
+              "h-full transition-[width] duration-500",
+              isDone ? "landed-badge" : "gate-badge",
+            )}
             style={{ width: `${(completed / total) * 100}%` }}
           />
         </div>
@@ -125,10 +146,16 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
                 const checked = !!done[task.id];
                 const tool = toolFor(task.id);
                 const toolOpen = expandedTool === task.id;
+                const skippable = notApplicable.has(task.id);
                 return (
                   <li key={task.id}>
                     <div className="flex items-start gap-2">
-                      <label className="flex flex-1 cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition-colors hover:bg-secondary/70">
+                      <label
+                        className={cn(
+                          "flex flex-1 cursor-pointer items-start gap-3 rounded-md px-2 py-2 transition-colors hover:bg-secondary/70",
+                          skippable && !checked && "opacity-60",
+                        )}
+                      >
                         <span className="mt-0.5 font-mono text-xs tabular-nums text-muted-foreground">
                           {step.no}.{i + 1}
                         </span>
@@ -154,6 +181,11 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
                             )}
                           >
                             {task.label}
+                            {skippable && !checked && (
+                              <span className="ml-1.5 font-mono text-[0.68rem] font-normal tracking-wide text-muted-foreground">
+                                (senin için gerekmeyebilir)
+                              </span>
+                            )}
                           </span>
                           {task.hint && (
                             <span className="mt-0.5 block text-[0.8rem] leading-snug text-muted-foreground">
@@ -188,7 +220,11 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
 
                     {tool && toolOpen && (
                       <div className="ml-2 mt-1 rounded-md border border-border bg-secondary/40 p-3.5">
-                        {tool.type === "path" ? <PathFinder stepId={step.id} /> : <GradeConverter />}
+                        {tool.type === "path" ? (
+                          <PathFinder stepId={step.id} />
+                        ) : (
+                          <GradeConverter />
+                        )}
                       </div>
                     )}
                   </li>
@@ -204,7 +240,9 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
               </p>
               <ul className="mt-2 space-y-3">
                 {docs.length === 0 && (
-                  <li className="text-sm text-muted-foreground">Bu adım için ayrı evrak gerekmiyor.</li>
+                  <li className="text-sm text-muted-foreground">
+                    Bu adım için ayrı evrak gerekmiyor.
+                  </li>
                 )}
                 {docs.map((d) => (
                   <li key={d.name} className="flex gap-3">
@@ -226,25 +264,24 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
                   TAHMİNİ ÜCRET
                 </p>
                 <div className="mt-2 overflow-hidden rounded-md border border-border">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {costs.map((c) => (
-                        <tr key={c.label} className="border-b border-border last:border-0">
-                          <td className="w-[55%] px-3 py-2.5 align-top">
-                            <span className="block text-foreground">{c.label}</span>
-                            {c.note && (
-                              <span className="mt-0.5 block text-[0.78rem] text-muted-foreground">
-                                {c.note}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-right align-top font-mono text-[0.8rem] tabular-nums text-money">
-                            {c.amount}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <ul>
+                    {costs.map((c) => (
+                      <li
+                        key={c.label}
+                        className="border-b border-border px-3 py-2.5 last:border-0"
+                      >
+                        <span className="block text-foreground">{c.label}</span>
+                        {c.note && (
+                          <span className="mt-0.5 block text-[0.78rem] text-muted-foreground">
+                            {c.note}
+                          </span>
+                        )}
+                        <span className="mt-1 block text-right font-mono text-[0.8rem] tabular-nums text-money">
+                          {c.amount}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                   <p className="flex items-start gap-2 border-t border-border bg-secondary/50 px-3 py-2.5 text-[0.78rem] text-muted-foreground">
                     <Wallet className="mt-0.5 size-3.5 shrink-0 text-money" />
                     Tutarlar tahminîdir; kur ve kurum politikalarına göre değişir.
