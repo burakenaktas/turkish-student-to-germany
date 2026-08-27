@@ -1,7 +1,8 @@
-import { Check, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { stepPaths } from "@/data/roadmap-paths";
 import { usePathAnswers } from "@/hooks/use-path-answers";
 import { resolvePath } from "@/lib/path-resolver";
+import { PathResultCard } from "@/components/roadmap/PathResultCard";
 import { cn } from "@/lib/utils";
 
 type Props = { stepId: string };
@@ -41,15 +42,7 @@ export function PathFinder({ stepId }: Props) {
       )}
 
       {result ? (
-        <div className="boarding-card rounded-md p-4">
-          <p className="flex items-center gap-2 font-heading text-sm font-semibold text-foreground">
-            <span className="landed-badge grid size-5 shrink-0 place-items-center rounded-full">
-              <Check className="size-3" strokeWidth={3} />
-            </span>
-            {result.title}
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{result.text}</p>
-        </div>
+        <PathResultCard result={result} />
       ) : current ? (
         <div>
           <p className="text-sm font-semibold text-foreground">{current.question}</p>

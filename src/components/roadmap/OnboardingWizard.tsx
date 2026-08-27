@@ -1,18 +1,36 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Compass, RotateCcw } from "lucide-react";
+import { ArrowLeft, Compass, RotateCcw, TrendingDown } from "lucide-react";
 import { allSteps } from "@/data/roadmap";
-import { stepPaths } from "@/data/roadmap-paths";
+import { stepPaths, type PathOption } from "@/data/roadmap-paths";
+import {
+  costLabelFor,
+  eur,
+  formatRange,
+  personalizedStepCosts,
+  personalizedTotal,
+  stepCosts,
+  totalEstimatedCost,
+} from "@/data/roadmap-extras";
 import { usePathAnswers } from "@/hooks/use-path-answers";
+import { useProfile } from "@/hooks/use-profile";
+import { useAnimatedRange } from "@/hooks/use-animated-range";
 import { resolvePath } from "@/lib/path-resolver";
+import { PathResultCard } from "@/components/roadmap/PathResultCard";
+import { ProfileStep } from "@/components/roadmap/ProfileStep";
 import { cn } from "@/lib/utils";
 
 /** Roadmap steps that have a "yol testi", in roadmap order. */
 const quizStepIds = allSteps.map((s) => s.id).filter((id) => stepPaths[id]);
 
+/** Steps whose "yol testi" answer actually narrows the cost estimate. */
+const costedStepIds = new Set(["s2", "s7", "s11", "s15"]);
+
 type Props = { onFinished?: () => void };
 
 export function OnboardingWizard({ onFinished }: Props) {
   const { answers, hydrated, setChoices, resetAll } = usePathAnswers();
+  const { hasProfile } = useProfile();
+  const [profileDone, setProfileDone] = useState(hasProfile);
   const [cursor, setCursor] = useState(0);
 
   const activeStepId = quizStepIds[Math.min(cursor, quizStepIds.length - 1)];
@@ -24,13 +42,19 @@ export function OnboardingWizard({ onFinished }: Props) {
     return resolvePath(root, answers[activeStepId!] ?? []);
   }, [root, answers, activeStepId]);
 
+  if (!profileDone) {
+    return <ProfileStep onDone={() => setProfileDone(true)} />;
+  }
+
   if (!hydrated || !root || !step) return null;
 
   const doneCount = quizStepIds.filter(
     (id) => resolvePath(stepPaths[id]!, answers[id] ?? []).result,
   ).length;
+  const allAnswered = doneCount === quizStepIds.length;
   const isLastQuestion = cursor === quizStepIds.length - 1;
   const choices = answers[activeStepId!] ?? [];
+  const isCostedStep = costedStepIds.has(activeStepId!);
 
   function choose(optionIndex: number) {
     const next = [...choices, optionIndex];
@@ -48,6 +72,31 @@ export function OnboardingWizard({ onFinished }: Props) {
       setCursor((c) => c - 1);
     }
   }
+
+  /**
+   * Cost preview for an option. A leaf option (has `result`) shows its exact
+   * narrowed cost; an option that opens a further sub-question (has `next`)
+   * shows the step's full, un-narrowed range — the worst case until the
+   * follow-up question is answered (e.g. "Hayır" → still might need the full
+   * Sperrkonto amount depending on the next answer).
+   */
+  function costPreview(option: PathOption, optionIndex: number): string | null {
+    if (!isCostedStep) return null;
+    if (option.result) {
+      const trialAnswers = { ...answers, [activeStepId!]: [...choices, optionIndex] };
+      const items = personalizedStepCosts(trialAnswers)[activeStepId!] ?? [];
+      return costLabelFor(items);
+    }
+    if (option.next) {
+      return costLabelFor(stepCosts[activeStepId!] ?? []);
+    }
+    return null;
+  }
+
+  const currentStepCostLabel =
+    isCostedStep && resolved?.result
+      ? costLabelFor(personalizedStepCosts(answers)[activeStepId!] ?? [])
+      : null;
 
   return (
     <div>
@@ -85,32 +134,36 @@ export function OnboardingWizard({ onFinished }: Props) {
 
       <div className="mt-6">
         {resolved?.result ? (
-          <div className="boarding-card rounded-md p-4">
-            <p className="flex items-center gap-2 font-heading text-sm font-semibold text-foreground">
-              <span className="landed-badge grid size-5 shrink-0 place-items-center rounded-full">
-                <Check className="size-3" strokeWidth={3} />
-              </span>
-              {resolved.result.title}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {resolved.result.text}
-            </p>
-          </div>
+          <PathResultCard result={resolved.result} costLabel={currentStepCostLabel} />
         ) : resolved?.current ? (
           <div>
             <p className="text-sm font-semibold text-foreground">{resolved.current.question}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {resolved.current.options.map((opt, i) => (
-                <button
-                  key={opt.label}
-                  type="button"
-                  onClick={() => choose(i)}
-                  className="cursor-pointer rounded-md border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-accent"
-                >
-                  {opt.label}
-                </button>
-              ))}
+              {resolved.current.options.map((opt, i) => {
+                const preview = costPreview(opt, i);
+                return (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => choose(i)}
+                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-accent"
+                  >
+                    {opt.label}
+                    {preview && (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 font-mono text-[0.65rem] text-muted-foreground">
+                        {preview}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+            {isCostedStep && (
+              <p className="mt-2.5 text-[0.72rem] leading-relaxed text-muted-foreground">
+                Etiketler, o seçeneği işaretlersen bu adımın tahmini ücretinin ne olacağını
+                gösterir.
+              </p>
+            )}
           </div>
         ) : null}
       </div>
@@ -154,10 +207,51 @@ export function OnboardingWizard({ onFinished }: Props) {
         </div>
       </div>
 
-      {doneCount > 0 && (
-        <p className="mt-4 text-[0.72rem] leading-relaxed text-muted-foreground">
-          {doneCount}/{quizStepIds.length} soru yanıtlandı. Cevapların ilgili adımlarda otomatik
-          işaretlenir; sonuçlar tahminîdir.
+      {allAnswered ? (
+        <AnimatedCostCompare answers={answers} />
+      ) : (
+        doneCount > 0 && (
+          <p className="mt-4 text-[0.72rem] leading-relaxed text-muted-foreground">
+            {doneCount}/{quizStepIds.length} soru yanıtlandı. Cevapların ilgili adımlarda otomatik
+            işaretlenir; sonuçlar tahminîdir.
+          </p>
+        )
+      )}
+    </div>
+  );
+}
+
+function AnimatedCostCompare({ answers }: { answers: Record<string, number[]> }) {
+  const target = personalizedTotal(answers);
+  const display = useAnimatedRange({ min: target.min, max: target.max });
+  const saved = Math.max(0, totalEstimatedCost.max - target.max);
+  const savedPct =
+    totalEstimatedCost.max > 0
+      ? Math.min(100, Math.round((saved / totalEstimatedCost.max) * 100))
+      : 0;
+
+  return (
+    <div className="mt-5 rounded-lg border border-money/30 bg-money/5 p-4">
+      <p className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+        <TrendingDown className="size-3.5 text-money" /> SANA ÖZEL TAHMİNİ ÜCRET
+      </p>
+      <p className="mt-1 font-mono text-[0.72rem] text-muted-foreground line-through decoration-muted-foreground/50">
+        Genel tahmin: {formatRange(totalEstimatedCost)}
+      </p>
+      <p className="mt-1 font-heading text-2xl font-bold tabular-nums text-money">
+        {formatRange({ min: Math.round(display.min), max: Math.round(display.max) })}
+      </p>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full bg-money transition-[width] duration-700 ease-out"
+          style={{ width: `${100 - savedPct}%` }}
+        />
+      </div>
+      {saved > 0 && (
+        <p className="mt-2 text-[0.78rem] leading-relaxed text-muted-foreground">
+          Cevapların sayesinde genel tahminden yaklaşık{" "}
+          <span className="font-semibold text-money">{eur.format(saved)} €</span> daha net bir rota
+          çıktı.
         </p>
       )}
     </div>

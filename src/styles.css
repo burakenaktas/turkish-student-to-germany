@@ -180,12 +180,73 @@
   color: var(--success-foreground);
 }
 
+@utility prose-post {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--foreground);
+
+  & h2 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin: 2rem 0 0.75rem;
+  }
+  & h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+  & p {
+    margin: 0.9rem 0;
+  }
+  & ul {
+    margin: 0.9rem 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+  & ol {
+    margin: 0.9rem 0;
+    padding-left: 1.25rem;
+    list-style: decimal;
+  }
+  & li {
+    margin: 0.35rem 0;
+    padding-left: 0.25rem;
+  }
+  & li::marker {
+    color: var(--muted-foreground);
+  }
+  & a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  & strong {
+    font-weight: 700;
+  }
+  & code {
+    background: var(--secondary);
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.85em;
+    font-family: var(--font-mono);
+  }
+  & blockquote {
+    border-left: 2px solid var(--border);
+    padding-left: 1rem;
+    color: var(--muted-foreground);
+    margin: 1rem 0;
+  }
+  & hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+}
+
 @utility dotted-line {
-  background-image: linear-gradient(
-    to right,
-    var(--border) 0 6px,
-    transparent 6px 14px
-  );
+  background-image: linear-gradient(to right, var(--border) 0 6px, transparent 6px 14px);
   background-size: 14px 1px;
   background-repeat: repeat-x;
 }
@@ -245,4 +306,14 @@
 
 @utility cloud-drift {
   animation: cloud-drift 18s ease-in-out infinite alternate;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

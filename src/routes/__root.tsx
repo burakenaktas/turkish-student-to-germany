@@ -11,6 +11,8 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "../config/site";
+import { Notebook } from "../components/roadmap/Notebook";
+import { WhatsAppButton } from "../components/WhatsAppButton";
 
 function NotFoundComponent() {
   return (
@@ -126,6 +128,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Notebook />
+      <WhatsAppButton />
     </QueryClientProvider>
   );
 }

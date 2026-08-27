@@ -1,4 +1,10 @@
-export type Task = { id: string; label: string; hint?: string };
+export type Task = {
+  id: string;
+  label: string;
+  hint?: string;
+  /** Blog/makale linki — SEO içeriği yayınlanınca buraya URL eklenir. */
+  articleUrl?: string;
+};
 
 export type Step = {
   id: string;
@@ -41,12 +47,18 @@ export const phases: Phase[] = [
             id: "s1t2",
             label: "YKS yerleştirme sonucunu ve puan türünü not al",
             hint: "Çoğu üniversite, seçtiğin bölümle aynı alanda YKS yerleşimi bekler.",
+            articleUrl: "/blog/lise-diplomasi-almanya-denklik-h-plus-h-eksi",
           },
           {
             id: "s1t3",
             label: "Doğrudan lisans / Studienkolleg / 1 yıl üniversite okuma şartını netleştir",
+            articleUrl: "/blog/feststellungsprufung-hazirlik-rehberi",
           },
-          { id: "s1t4", label: "Gerekliyse Studienkolleg kur tipini belirle (T, M, W, G, S)" },
+          {
+            id: "s1t4",
+            label: "Gerekliyse Studienkolleg kur tipini belirle (T, M, W, G, S)",
+            articleUrl: "/blog/studienkolleg-kur-tipleri-t-m-w-g-s",
+          },
           {
             id: "s1t5",
             label:
@@ -64,12 +76,20 @@ export const phases: Phase[] = [
           "Eğitim diline göre gerekli sertifikayı al: Goethe / TestDaF / DSH ya da IELTS / TOEFL.",
         duration: "3–12 ay",
         tasks: [
-          { id: "s2t1", label: "Bölümün eğitim dilini belirle (Almanca / İngilizce / karma)" },
+          {
+            id: "s2t1",
+            label: "Bölümün eğitim dilini belirle (Almanca / İngilizce / karma)",
+            articleUrl: "/blog/almanyada-ingilizce-lisans-bolumleri",
+          },
           {
             id: "s2t2",
             label: "Almanca için hedef seviyeyi seç: B1–B2 (Studienkolleg) veya C1 (lisans)",
           },
-          { id: "s2t3", label: "Sınav tarihini erken rezerve et (kontenjanlar hızlı doluyor)" },
+          {
+            id: "s2t3",
+            label: "Sınav tarihini erken rezerve et (kontenjanlar hızlı doluyor)",
+            articleUrl: "/blog/testdaf-dsh-goethe-c1-karsilastirma",
+          },
           { id: "s2t4", label: "İngilizce bölüm için IELTS 6.0–6.5 / TOEFL 80+ hedefle" },
           { id: "s2t5", label: "Sertifikanın geçerlilik süresini kontrol et (genelde 2 yıl)" },
         ],
@@ -83,11 +103,19 @@ export const phases: Phase[] = [
         tasks: [
           {
             id: "s3t1",
-            label: "10–15 üniversiteden oluşan bir liste kur (garanti / hedef / iddialı)",
+            label: "5 üniversiteden oluşan bir liste kur (garanti / hedef / iddialı)",
           },
-          { id: "s3t2", label: "Her bölüm için NC değerini ve geçen yılın barajını yaz" },
+          {
+            id: "s3t2",
+            label: "Her bölüm için NC değerini ve geçen yılın barajını yaz",
+            articleUrl: "/blog/numerus-clausus-nc-nedir",
+          },
           { id: "s3t3", label: "Başvuru dönemini seç: Kış (15 Temmuz) / Yaz (15 Ocak)" },
-          { id: "s3t4", label: "Başvurunun uni-assist mi, doğrudan portal mı olduğunu işaretle" },
+          {
+            id: "s3t4",
+            label: "Başvurunun uni-assist mi, doğrudan portal mı olduğunu işaretle",
+            articleUrl: "/blog/uni-assist-mi-dogrudan-basvuru-mu",
+          },
           { id: "s3t5", label: "Şehir yaşam maliyeti ve yurt durumunu karşılaştır" },
         ],
       },
@@ -109,10 +137,18 @@ export const phases: Phase[] = [
         tasks: [
           { id: "s4t1", label: "Lise diploması ve 9–12. sınıf transkriptini okuldan al" },
           { id: "s4t2", label: "ÖSYM yerleştirme belgesini (YKS sonuç + yerleşme) indir" },
-          { id: "s4t3", label: "Yeminli tercüman ile Almanca/İngilizce tercümeleri yaptır" },
+          {
+            id: "s4t3",
+            label: "Yeminli tercüman ile Almanca/İngilizce tercümeleri yaptır",
+            articleUrl: "/blog/yeminli-tercume-apostil-zinciri",
+          },
           { id: "s4t4", label: "Noter onayı + kaymakamlıktan apostil aldır" },
           { id: "s4t5", label: "Europass formatında CV hazırla" },
-          { id: "s4t6", label: "Bölüme özel motivasyon mektubu (Motivationsschreiben) yaz" },
+          {
+            id: "s4t6",
+            label: "Bölüme özel motivasyon mektubu (Motivationsschreiben) yaz",
+            articleUrl: "/blog/motivationsschreiben-nasil-yazilir",
+          },
           { id: "s4t7", label: "Pasaport çıkart / geçerlilik süresini kontrol et (en az 1,5 yıl)" },
           { id: "s4t8", label: "Tüm evrakların taranmış PDF arşivini oluştur" },
         ],
@@ -127,7 +163,11 @@ export const phases: Phase[] = [
         duration: "4–8 hafta",
         tasks: [
           { id: "s5t1", label: "uni-assist hesabı aç ve evrakları yükle" },
-          { id: "s5t2", label: "Gerekiyorsa VPD (Vorprüfungsdokumentation) talep et" },
+          {
+            id: "s5t2",
+            label: "Gerekiyorsa VPD (Vorprüfungsdokumentation) talep et",
+            articleUrl: "/blog/vpd-vorprufungsdokumentation-nedir",
+          },
           { id: "s5t3", label: "Başvuru ücretlerini öde (ilk başvuru + ek başvurular)" },
           { id: "s5t4", label: "Fiziksel evrak isteyen üniversitelere posta gönder" },
           { id: "s5t5", label: "Her başvurunun durumunu tablo halinde takip et" },
@@ -141,7 +181,11 @@ export const phases: Phase[] = [
         duration: "4–10 hafta",
         tasks: [
           { id: "s6t1", label: "Zulassungsbescheid PDF'ini indir ve yedekle" },
-          { id: "s6t2", label: "Şartlı kabul ise (bedingte Zulassung) şartları listele" },
+          {
+            id: "s6t2",
+            label: "Şartlı kabul ise (bedingte Zulassung) şartları listele",
+            articleUrl: "/blog/bedingte-zulassung-sartli-kabul",
+          },
           { id: "s6t3", label: "Kabulü onaylama / yer teyidi son tarihini takvimine ekle" },
           { id: "s6t4", label: "Reddedilen başvurular için yedek planı devreye al" },
         ],
@@ -163,11 +207,16 @@ export const phases: Phase[] = [
         duration: "2–5 hafta",
         tasks: [
           { id: "s7t1", label: "Güncel yıllık yasal tutarı konsolosluk sayfasından doğrula" },
-          { id: "s7t2", label: "Bloke hesap sağlayıcısı seç ve hesabı aç" },
+          {
+            id: "s7t2",
+            label: "Bloke hesap sağlayıcısı seç ve hesabı aç",
+            articleUrl: "/blog/sperrkonto-saglayici-karsilastirma",
+          },
           { id: "s7t3", label: "Parayı transfer et ve bloke onay yazısını al" },
           {
             id: "s7t4",
             label: "Alternatif: garantör (Verpflichtungserklärung) veya burs belgesi hazırla",
+            articleUrl: "/blog/verpflichtungserklarung-garantor-sureci",
           },
         ],
       },
@@ -180,8 +229,19 @@ export const phases: Phase[] = [
         duration: "1 hafta",
         tasks: [
           { id: "s8t1", label: "Vize dosyası için seyahat sağlık sigortası yaptır" },
-          { id: "s8t2", label: "Yasal sigorta (TK, AOK, Barmer vb.) başvurusunu başlat" },
+          {
+            id: "s8t2",
+            label: "Yasal sigorta (TK, AOK, Barmer vb.) başvurusunu başlat",
+            articleUrl: "/blog/yasal-mi-ozel-mi-saglik-sigortasi",
+          },
           { id: "s8t3", label: "Üniversiteye gidecek sigorta bildirimini (M10) talep et" },
+          {
+            id: "s8t4",
+            label:
+              "SGK üzerinden Türkiye–Almanya sosyal güvenlik sözleşmesi (A/T 11) belgesini araştır",
+            hint: "SGK'lıysan (kendi sigortan veya ailen üzerinden), A/T 11 sağlık yardım belgesi Almanya'da sözleşmeli kurumlarda sınırlı sağlık hizmeti alabilmeni sağlar. Genelde üniversite kaydı/Anmeldung için tek başına yeterli sayılmaz; üniversitenin kabul ettiği yasal (TK/AOK/Barmer) veya özel öğrenci sigortasına yine de ihtiyacın olur. Şartları ve kapsamı SGK il müdürlüğünden doğrula.",
+            articleUrl: "/blog/sgk-at11-belgesi",
+          },
         ],
       },
       {
@@ -192,7 +252,11 @@ export const phases: Phase[] = [
           "Konsolosluk aracı kurumu üzerinden Ulusal Vize (Typ D) randevusu al ve evrakları teslim et.",
         duration: "6–12 hafta",
         tasks: [
-          { id: "s9t1", label: "Randevu aç — kabul gelmeden önce takip etmeye başla" },
+          {
+            id: "s9t1",
+            label: "Randevu aç — kabul gelmeden önce takip etmeye başla",
+            articleUrl: "/blog/ulusal-ogrenci-vizesi-typ-d-randevu",
+          },
           { id: "s9t2", label: "Vize başvuru formunu doldur ve imzala" },
           { id: "s9t3", label: "Biyometrik fotoğraf çektir" },
           { id: "s9t4", label: "Evrak setini 2–3 takım halinde çoğalt" },
@@ -209,7 +273,12 @@ export const phases: Phase[] = [
         tasks: [
           { id: "s10t1", label: "Vizedeki tarih, süre ve çalışma iznini kontrol et" },
           { id: "s10t2", label: "Uçuş biletini al (kayıt tarihinden en az 2 hafta önce)" },
-          { id: "s10t3", label: "İlk 2 haftanın bütçesini ve nakit planını yap" },
+          {
+            id: "s10t3",
+            label: "İlk 2 haftanın bütçesini ve nakit planını yap",
+            hint: "Kaba hesap: geçici konaklama + yemek + ulaşım için günlük ≈40–60 €, artı 100–150 € acil durum payı — banka hesabın (Adım 14) açılana kadar bu tutarı nakit/kartla taşı.",
+            articleUrl: "/blog/ilk-2-hafta-butce-plani",
+          },
         ],
       },
     ],
@@ -228,11 +297,19 @@ export const phases: Phase[] = [
           "Öğrenci yurdu (Studierendenwerk), paylaşımlı ev (WG) veya geçici konaklama ayarla.",
         duration: "1–6 ay",
         tasks: [
-          { id: "s11t1", label: "Studierendenwerk yurt başvurusunu hemen yap (sıra uzun)" },
+          {
+            id: "s11t1",
+            label: "Studierendenwerk yurt başvurusunu hemen yap (sıra uzun)",
+            articleUrl: "/blog/wg-mi-yurt-mu-konaklama-karsilastirma",
+          },
           { id: "s11t2", label: "WG-Gesucht / Immobilienscout profili oluştur" },
           { id: "s11t3", label: "İlk 4–6 hafta için geçici konaklama rezerve et" },
           { id: "s11t4", label: "Depozito (Kaution) için 2–3 kira bedeli ayır" },
-          { id: "s11t5", label: "Dolandırıcılık kontrolü: görmeden para gönderme" },
+          {
+            id: "s11t5",
+            label: "Dolandırıcılık kontrolü: görmeden para gönderme",
+            articleUrl: "/blog/wg-gesucht-dolandiricilik-guvenlik",
+          },
         ],
         warning: "Ev bulmadan uçmak riskli — mutlaka geçici bir adresi garantiye al.",
       },
@@ -244,7 +321,11 @@ export const phases: Phase[] = [
         duration: "1 gün",
         tasks: [
           { id: "s12t1", label: "Tüm orijinal evrakları el bagajında taşı" },
-          { id: "s12t2", label: "Havalimanı–şehir ulaşımını önceden planla" },
+          {
+            id: "s12t2",
+            label: "Havalimanı–şehir ulaşımını önceden planla",
+            articleUrl: "/blog/ilk-gun-checklist-almanya",
+          },
           { id: "s12t3", label: "Alman SIM kart / eSIM al" },
           { id: "s12t4", label: "Anahtar teslimi ve ev devir tutanağını tamamla" },
         ],
@@ -266,7 +347,11 @@ export const phases: Phase[] = [
         duration: "İlk 14 gün",
         tasks: [
           { id: "s13t1", label: "Ev sahibinden Wohnungsgeberbestätigung al" },
-          { id: "s13t2", label: "Bürgeramt / Einwohnermeldeamt randevusu al" },
+          {
+            id: "s13t2",
+            label: "Bürgeramt / Einwohnermeldeamt randevusu al",
+            articleUrl: "/blog/anmeldung-randevusu-nasil-alinir",
+          },
           { id: "s13t3", label: "Anmeldebestätigung belgesini teslim al ve sakla" },
         ],
         warning: "Anmeldung olmadan banka, sigorta ve oturum işlemlerinin hiçbiri ilerlemez.",
@@ -278,7 +363,11 @@ export const phases: Phase[] = [
         subtitle: "Bloke hesaptaki aylık paranın aktarılması için yerel cari hesap (Girokonto) aç.",
         duration: "1–2 hafta",
         tasks: [
-          { id: "s14t1", label: "Ücretsiz öğrenci Girokonto seç" },
+          {
+            id: "s14t1",
+            label: "Ücretsiz öğrenci Girokonto seç",
+            articleUrl: "/blog/almanyada-ogrenci-banka-hesabi-karsilastirma",
+          },
           { id: "s14t2", label: "Kimlik doğrulamasını tamamla (Video/Post-Ident)" },
           { id: "s14t3", label: "IBAN'ı bloke hesap sağlayıcısına bildir" },
           { id: "s14t4", label: "İlk aylık ödemenin geldiğini doğrula" },
@@ -292,7 +381,11 @@ export const phases: Phase[] = [
           "Dönem harcını (Semesterbeitrag) öde, sigorta bildirimini ilet, resmî öğrenci kaydını tamamla.",
         duration: "1–2 hafta",
         tasks: [
-          { id: "s15t1", label: "Semesterbeitrag ödemesini yap" },
+          {
+            id: "s15t1",
+            label: "Semesterbeitrag ödemesini yap",
+            articleUrl: "/blog/semesterbeitraga-ne-dahil",
+          },
           {
             id: "s15t2",
             label: "Sigorta şirketinden üniversiteye elektronik bildirim gönderilsin",
@@ -310,8 +403,16 @@ export const phases: Phase[] = [
           "Eve posta ile gelen Vergi Numarası (Steuer-ID) ve yayın harcı (Rundfunkbeitrag / GEZ) bildirimlerini tamamla.",
         duration: "2–6 hafta",
         tasks: [
-          { id: "s16t1", label: "Steuer-ID mektubunu bekle ve numarayı kaydet" },
-          { id: "s16t2", label: "Rundfunkbeitrag kaydını yap veya WG'de mevcut kayda bağlan" },
+          {
+            id: "s16t1",
+            label: "Steuer-ID mektubunu bekle ve numarayı kaydet",
+            articleUrl: "/blog/steuer-id-nedir",
+          },
+          {
+            id: "s16t2",
+            label: "Rundfunkbeitrag kaydını yap veya WG'de mevcut kayda bağlan",
+            articleUrl: "/blog/rundfunkbeitrag-gez-zorunlu-mu",
+          },
           { id: "s16t3", label: "Posta kutunda isminin yazılı olduğundan emin ol" },
         ],
       },
@@ -323,7 +424,11 @@ export const phases: Phase[] = [
           "Giriş vizesinin süresi bitmeden Yabancılar Dairesi'nden (Ausländerbehörde) eğitim amaçlı oturum kartını al.",
         duration: "4–10 hafta",
         tasks: [
-          { id: "s17t1", label: "Vize bitiminden en az 6 hafta önce randevu al" },
+          {
+            id: "s17t1",
+            label: "Vize bitiminden en az 6 hafta önce randevu al",
+            articleUrl: "/blog/ogrenci-oturum-izni-eat-basvurusu",
+          },
           {
             id: "s17t2",
             label: "Dosyayı hazırla: Anmeldung, sigorta, finans kanıtı, öğrenci belgesi",

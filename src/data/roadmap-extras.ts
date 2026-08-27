@@ -3,13 +3,17 @@
  * Tutarlar 2025/26 dönemi referans alınarak TAHMİNÎdir; resmî kaynakla doğrulanmalı.
  */
 
+import { stepPaths } from "@/data/roadmap-paths";
+import { resolvePath } from "@/lib/path-resolver";
+
 export type CostItem = { label: string; amount: string; note?: string };
-export type DocItem = { name: string; how: string };
+export type DocLink = { label: string; url: string };
+export type DocItem = { name: string; how: string; links?: DocLink[] };
 
 export const stepCosts: Record<string, CostItem[]> = {
   s1: [
     { label: "Denklik testi (sitede)", amount: "0 €" },
-    { label: "İsteğe bağlı danışmanlık", amount: "0 – 300 €", note: "Zorunlu değil" },
+    { label: "İsteğe bağlı danışmanlık", amount: "0 – 2.000 €", note: "Zorunlu değil" },
   ],
   s2: [
     {
@@ -96,6 +100,12 @@ export const stepCosts: Record<string, CostItem[]> = {
   ],
 };
 
+const privateUniCost: CostItem = {
+  label: "Özel üniversite okul harcı (dönem)",
+  amount: "2.500 – 10.000 €",
+  note: "Kuruma göre büyük farklılık gösterir; burs/kredi seçeneklerini araştır",
+};
+
 function parseAmountRange(amount: string): [number, number] | null {
   if (!amount.includes("€")) return null;
   const matches = amount.match(/[\d.,]+/g);
@@ -107,20 +117,102 @@ function parseAmountRange(amount: string): [number, number] | null {
   return [Math.min(...nums), Math.max(...nums)];
 }
 
-const eur = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
+export const eur = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 
-export const totalEstimatedCost = Object.values(stepCosts)
-  .flat()
-  .reduce(
-    (acc, c) => {
-      const range = parseAmountRange(c.amount);
-      if (!range) return acc;
-      return { min: acc.min + range[0], max: acc.max + range[1] };
-    },
-    { min: 0, max: 0 },
+function sumCosts(costsById: Record<string, CostItem[]>): { min: number; max: number } {
+  return Object.values(costsById)
+    .flat()
+    .reduce(
+      (acc, c) => {
+        const range = parseAmountRange(c.amount);
+        if (!range) return acc;
+        return { min: acc.min + range[0], max: acc.max + range[1] };
+      },
+      { min: 0, max: 0 },
+    );
+}
+
+export function formatRange(range: { min: number; max: number }): string {
+  if (range.min === range.max) return `${eur.format(range.min)} €`;
+  return `${eur.format(range.min)} – ${eur.format(range.max)} €`;
+}
+
+/** Sums+formats one step's cost items in isolation — used for per-question cost previews. */
+export function costRangeFor(items: CostItem[]): { min: number; max: number } {
+  return sumCosts({ x: items });
+}
+
+export function costLabelFor(items: CostItem[]): string {
+  if (items.length === 0) return "Ek ücret yok";
+  return formatRange(costRangeFor(items));
+}
+
+export const totalEstimatedCost = sumCosts(stepCosts);
+export const totalEstimatedCostLabel = formatRange(totalEstimatedCost);
+
+/** "Yol testi" (s2/s7/s11/s15) cevaplarına göre işaretlenen semantik etiket. */
+function costTagFor(stepId: string, choices: number[]): string | undefined {
+  const root = stepPaths[stepId];
+  if (!root) return undefined;
+  return resolvePath(root, choices).result?.costTag;
+}
+
+/**
+ * Kullanıcının "yol testi" cevaplarına göre daraltılmış maliyet kalemleri.
+ * Bir adım için soru henüz cevaplanmamışsa o adımın tüm kalemleri (en geniş
+ * ihtimal) korunur — böylece cevapsız durumda sonuç `stepCosts` ile aynı kalır.
+ */
+export function personalizedStepCosts(
+  pathAnswers: Record<string, number[]>,
+): Record<string, CostItem[]> {
+  const costs: Record<string, CostItem[]> = { ...stepCosts };
+
+  const langTag = costTagFor("s2", pathAnswers["s2"] ?? []);
+  if (langTag === "lang-certified") {
+    costs["s2"] = [];
+  } else if (langTag === "lang-english") {
+    costs["s2"] = (stepCosts["s2"] ?? []).filter((c) => c.label.startsWith("IELTS"));
+  } else if (langTag === "lang-course") {
+    costs["s2"] = (stepCosts["s2"] ?? []).filter((c) => !c.label.startsWith("IELTS"));
+  }
+
+  const financeTag = costTagFor("s7", pathAnswers["s7"] ?? []);
+  if (financeTag === "finance-no-blocked-account") {
+    costs["s7"] = [];
+  }
+
+  const housingTag = costTagFor("s11", pathAnswers["s11"] ?? []);
+  const alwaysHousing = (stepCosts["s11"] ?? []).filter(
+    (c) => !c.label.startsWith("Yurt") && !c.label.startsWith("WG"),
   );
+  if (housingTag === "housing-dorm") {
+    costs["s11"] = [
+      ...(stepCosts["s11"] ?? []).filter((c) => c.label.startsWith("Yurt")),
+      ...alwaysHousing,
+    ];
+  } else if (housingTag === "housing-shared") {
+    costs["s11"] = [
+      ...(stepCosts["s11"] ?? []).filter((c) => c.label.startsWith("WG")),
+      ...alwaysHousing,
+    ];
+  }
 
-export const totalEstimatedCostLabel = `${eur.format(totalEstimatedCost.min)} – ${eur.format(totalEstimatedCost.max)} €`;
+  const uniTag = costTagFor("s15", pathAnswers["s15"] ?? []);
+  if (uniTag === "uni-private") {
+    costs["s15"] = [privateUniCost];
+  }
+
+  return costs;
+}
+
+export function personalizedTotal(pathAnswers: Record<string, number[]>): {
+  min: number;
+  max: number;
+  label: string;
+} {
+  const range = sumCosts(personalizedStepCosts(pathAnswers));
+  return { ...range, label: formatRange(range) };
+}
 
 export type SavingTip = { title: string; text: string };
 
@@ -166,6 +258,11 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Dil sertifikası",
       how: "Goethe-Institut / telc merkezi / TestDaF merkezinde sınava gir; sertifika 2-6 hafta içinde teslim edilir.",
+      links: [
+        { label: "Goethe-Institut", url: "https://www.goethe.de" },
+        { label: "telc", url: "https://www.telc.net" },
+        { label: "TestDaF", url: "https://www.testdaf.de" },
+      ],
     },
     {
       name: "Kurs katılım belgesi",
@@ -191,10 +288,12 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Pasaport",
       how: "Randevu: randevu.nvi.gov.tr → nüfus müdürlüğü; en az 1,5 yıl geçerli olmalı.",
+      links: [{ label: "randevu.nvi.gov.tr", url: "https://randevu.nvi.gov.tr" }],
     },
     {
       name: "Europass CV + motivasyon mektubu",
       how: "europa.eu/europass üzerinden oluştur; motivasyon mektubunu her bölüme özel yaz.",
+      links: [{ label: "Europass", url: "https://europa.eu/europass/en" }],
     },
     { name: "Biyometrik fotoğraf", how: "35×45 mm, beyaz fon, son 6 ay içinde çekilmiş." },
   ],
@@ -202,6 +301,7 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "uni-assist başvuru dosyası",
       how: "my.uni-assist.de hesabı aç, taranmış evrakları yükle, ücreti kartla öde.",
+      links: [{ label: "uni-assist.de", url: "https://www.uni-assist.de" }],
     },
     { name: "VPD", how: "uni-assist üzerinden ayrı başvuru; sonuç PDF olarak hesabına düşer." },
     {
@@ -223,6 +323,11 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Sperrkonto (bloke hesap) onay yazısı",
       how: "Coracle / Expatrio / Fintiba / Deutsche Bank üzerinden hesap aç, parayı SWIFT ile transfer et, onay yazısı e-posta ile gelir.",
+      links: [
+        { label: "Expatrio", url: "https://www.expatrio.com" },
+        { label: "Fintiba", url: "https://www.fintiba.com" },
+        { label: "Coracle", url: "https://www.coracle.de" },
+      ],
     },
     {
       name: "Alternatif: Verpflichtungserklärung",
@@ -241,20 +346,31 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Öğrenci sağlık sigortası onayı",
       how: "TK / AOK / Barmer online başvurusu; kabul mektubu ve pasaport yüklenir.",
+      links: [
+        { label: "TK", url: "https://www.tk.de" },
+        { label: "AOK", url: "https://www.aok.de" },
+        { label: "Barmer", url: "https://www.barmer.de" },
+      ],
     },
     {
       name: "M10 sigorta bildirimi",
       how: "Sigorta şirketinden üniversiteye elektronik olarak gönderilmesini talep et.",
+    },
+    {
+      name: "A/T 11 sağlık yardım belgesi (SGK)",
+      how: "Türkiye–Almanya sosyal güvenlik sözleşmesi kapsamında SGK il müdürlüğünden talep edilir; sadece SGK ile sözleşmeli kurumlarda ve sınırlı kapsamda geçerlidir. Üniversite kaydı için genelde yasal/özel öğrenci sigortasının yerini tutmaz — şartları SGK'dan doğrula.",
     },
   ],
   s9: [
     {
       name: "Vize başvuru formu (VIDEX)",
       how: "videx-national.diplo.de üzerinden doldur, çıktı al ve imzala.",
+      links: [{ label: "videx-national.diplo.de", url: "https://videx-national.diplo.de" }],
     },
     {
       name: "Randevu onayı",
       how: "Konsolosluk aracı kurumu (iDATA vb.) üzerinden randevu al, onay e-postasını yazdır.",
+      links: [{ label: "iDATA Ulusal Vize Randevu", url: "https://ulusalrandevu.idata.com.tr/tr" }],
     },
     {
       name: "Evrak seti (2-3 takım)",
@@ -271,10 +387,15 @@ export const stepDocs: Record<string, DocItem[]> = {
   s11: [
     {
       name: "Kira sözleşmesi (Mietvertrag)",
-      how: "Yurt veya ev sahibi tarafından imzalanır; PDF kopyasını sakla.",
+      how: "Yurt veya ev sahibi tarafından imzalanır; PDF kopyasını sakla. İlan için WG-Gesucht, Immobilienscout24 veya şehrinin Studierendenwerk'ünü kullan.",
+      links: [
+        { label: "WG-Gesucht", url: "https://www.wg-gesucht.de" },
+        { label: "Immobilienscout24", url: "https://www.immobilienscout24.de" },
+        { label: "Studierendenwerke", url: "https://www.studierendenwerke.de" },
+      ],
     },
     {
-      name: "Wohnungsgeberbestätigung",
+      name: "Wohnungsgeber\u00ADbestätigung",
       how: "Ev sahibinden/yurt yönetiminden taşındıktan sonra talep et — Anmeldung için zorunlu.",
     },
     {
@@ -295,7 +416,7 @@ export const stepDocs: Record<string, DocItem[]> = {
   s13: [
     { name: "Anmeldeformular", how: "Şehrin Bürgeramt sitesinden indir, doldur." },
     {
-      name: "Wohnungsgeberbestätigung",
+      name: "Wohnungsgeber\u00ADbestätigung",
       how: "Ev sahibinin imzaladığı belge; onsuz kayıt yapılmaz.",
     },
     {
@@ -307,6 +428,11 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Girokonto başvurusu",
       how: "N26 / Commerzbank / Sparkasse; Anmeldebestätigung + pasaport + öğrenci belgesi.",
+      links: [
+        { label: "N26", url: "https://n26.com" },
+        { label: "Sparkasse", url: "https://www.sparkasse.de" },
+        { label: "Commerzbank", url: "https://www.commerzbank.de" },
+      ],
     },
     {
       name: "Kimlik doğrulama",
@@ -335,6 +461,7 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Rundfunkbeitrag kaydı",
       how: "rundfunkbeitrag.de üzerinden kayıt ol veya WG'deki mevcut kayda ekle.",
+      links: [{ label: "rundfunkbeitrag.de", url: "https://www.rundfunkbeitrag.de" }],
     },
   ],
   s17: [
@@ -353,6 +480,115 @@ export const stepDocs: Record<string, DocItem[]> = {
     {
       name: "Fiktionsbescheinigung",
       how: "Randevu vize bitiminden sonraya kaldıysa Ausländerbehörde'den talep et.",
+    },
+  ],
+};
+
+/** Adım bazlı kıyaslama tabloları (sigorta türleri, bloke hesap sağlayıcıları vb.). */
+export type ComparisonRow = { name: string; detail: string; note?: string };
+
+export const stepComparisons: Record<string, { title: string; rows: ComparisonRow[] }> = {
+  s8: {
+    title: "Sigorta türleri — hangisi ne için sayılır?",
+    rows: [
+      {
+        name: "Seyahat sağlık sigortası",
+        detail:
+          "Vize başvurusu için gerekli. En az 30.000 € tıbbi kapsam, tüm Schengen bölgesinde geçerli olmalı.",
+        note: "≈ 30–80 € · Allianz, HDI, Ergo, Groupama gibi sağlayıcılardan tek seferlik alınır",
+      },
+      {
+        name: "Yasal öğrenci sigortası (TK, AOK, Barmer)",
+        detail:
+          "Üniversite kaydı (Immatrikulation) ve oturum izni için gerekli. Genelde 30 yaş / 14. dönem altı öğrenciler için zorunlu.",
+        note: "≈ 120–145 € / ay",
+      },
+      {
+        name: "Özel sağlık sigortası",
+        detail:
+          "30 yaş üstü veya bazı istisnai durumlarda yasal sigorta yerine geçebilir — üniversitenin kabul edip etmediğini kayıttan önce mutlaka doğrula.",
+        note: "Fiyat sağlayıcıya göre değişir",
+      },
+      {
+        name: "A/T 11 (SGK sözleşmeli sağlık yardımı)",
+        detail:
+          "Ne vize ne de üniversite kaydı için tek başına yeterli sayılır — sadece SGK ile sözleşmeli kurumlarda sınırlı kapsam sağlar, resmi sigortanın yerine geçmez.",
+        note: "SGK il müdürlüğünden ek ücretsiz",
+      },
+    ],
+  },
+  s7: {
+    title: "Bloke hesap (Sperrkonto) sağlayıcı kıyaslaması",
+    rows: [
+      {
+        name: "Expatrio",
+        detail:
+          "Vize başvurusunda en sık kullanılan sağlayıcılardan biri; bloke hesap + sigorta paketini bir arada, tamamen online açar.",
+      },
+      {
+        name: "Fintiba",
+        detail:
+          "Uzun süredir hizmet veriyor; farklı sigorta paketleriyle bloke hesabı birleştirebiliyor, Türkçe destek sunuyor.",
+      },
+      {
+        name: "Coracle",
+        detail: "Görece daha yeni bir sağlayıcı; sade arayüzü ve hızlı onay süreciyle öne çıkıyor.",
+      },
+      {
+        name: "Deutsche Bank (klasik banka)",
+        detail:
+          "Geleneksel banka güveni ister, ama şube süreci ve evrak talebi diğerlerine göre daha yavaş işleyebilir.",
+      },
+    ],
+  },
+};
+
+/** Belirli süreçler için gereken belgelerin tam listesi (yol testi/evrak listesinden bağımsız, konsolide görünüm). */
+export type Checklist = { title: string; items: string[]; note?: string };
+
+export const stepChecklists: Record<string, Checklist[]> = {
+  s8: [
+    {
+      title: "A/T 11 sağlık yardım belgesi için gerekenler",
+      items: [
+        "Nüfus cüzdanı veya pasaport",
+        "SGK'ya kayıtlı olduğunu gösteren belge (aktivasyonlu SGK kaydı veya 4A/4B/4C sigortalılık belgesi)",
+        "Almanya'daki geçici adres bilgisi (varsa)",
+        "SGK il/ilçe müdürlüğüne dilekçe",
+      ],
+      note: "Tam liste ve şartlar SGK'ya göre değişebilir — il müdürlüğünden güncel listeyi doğrula.",
+    },
+  ],
+  s9: [
+    {
+      title: "Ulusal vize (Typ D) başvurusu için gereken belgeler",
+      items: [
+        "Pasaport (en az 1,5 yıl geçerli) + fotokopiler",
+        "İmzalı VIDEX başvuru formu çıktısı",
+        "Biyometrik fotoğraf (2 adet)",
+        "Kabul mektubu (Zulassungsbescheid) veya Studienkolleg kabul yazısı",
+        "Finansman kanıtı: Sperrkonto onay yazısı, Verpflichtungserklärung veya burs yazısı",
+        "Seyahat sağlık sigortası poliçesi (en az 30.000 € kapsam)",
+        "Lise diploması, not dökümü, denklik/dil sertifikaları",
+        "Europass CV + motivasyon mektubu",
+        "Randevu onay e-postası",
+        "Vize harcı dekontu",
+      ],
+    },
+  ],
+  s17: [
+    {
+      title: "Oturum izni (Aufenthaltstitel) başvurusu için gereken belgeler",
+      items: [
+        "Geçerli (vizeli) pasaport",
+        "Biyometrik fotoğraf",
+        "Anmeldebestätigung (ikamet kaydı)",
+        "Finans kanıtı: Sperrkonto ekstresi, burs yazısı veya garantör belgesi",
+        "Sağlık sigortası belgesi (yasal veya özel)",
+        "Üniversite kayıt belgesi (Immatrikulationsbescheinigung)",
+        "Ausländerbehörde başvuru formu",
+        "Harç ödemesi",
+      ],
     },
   ],
 };

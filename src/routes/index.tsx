@@ -1,32 +1,30 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Fragment, useMemo, useState } from "react";
 import {
-  Plane,
-  PlaneTakeoff,
   PlaneLanding,
-  RotateCcw,
   Share2,
   Check,
   ArrowRight,
-  FileText,
   Wallet,
   PiggyBank,
   Compass,
+  BookOpen,
+  UserRound,
 } from "lucide-react";
+import { PlaneIcon } from "@/components/roadmap/PlaneIcon";
 import { phases, allTaskIds, allSteps } from "@/data/roadmap";
-import {
-  stepCosts,
-  stepDocs,
-  totalEstimatedCostLabel,
-  costSavingTips,
-} from "@/data/roadmap-extras";
+import { personalizedStepCosts, personalizedTotal, costSavingTips } from "@/data/roadmap-extras";
+import { blogPosts, isPublished } from "@/data/blog-posts";
+import { stepImages } from "@/data/step-images";
 import { stepPaths } from "@/data/roadmap-paths";
 import { StepCard } from "@/components/roadmap/StepCard";
 import { FlightPath } from "@/components/roadmap/FlightPath";
 import { TurkeyFlag, GermanyFlag } from "@/components/roadmap/Flags";
 import { OnboardingWizard } from "@/components/roadmap/OnboardingWizard";
+import { PathFinder } from "@/components/roadmap/PathFinder";
 import { useProgress } from "@/hooks/use-progress";
 import { usePathAnswers } from "@/hooks/use-path-answers";
+import { useProfile } from "@/hooks/use-profile";
 import { resolvePath } from "@/lib/path-resolver";
 import { cn } from "@/lib/utils";
 import { SITE_URL } from "@/config/site";
@@ -109,31 +107,34 @@ const phaseAccent: Record<string, Accent> = {
 
 const defaultAccent: Accent = phaseAccent["faz5"]!;
 
+const blogThumbStepIds = ["s1", "s7", "s11", "s15"];
+
 function RoadmapPage() {
-  const { done, hydrated, toggle, setMany, reset } = useProgress();
-  const { answers: pathAnswers, hydrated: pathHydrated } = usePathAnswers();
+  const { done, hydrated, toggle, setMany } = useProgress();
+  const { answers: pathAnswers } = usePathAnswers();
+  const { profile, hasProfile } = useProfile();
   const [shared, setShared] = useState(false);
   const [costOpen, setCostOpen] = useState(false);
-  const [wizardOpen, setWizardOpen] = useState(false);
 
   const quizStepIds = useMemo(() => allSteps.map((s) => s.id).filter((id) => stepPaths[id]), []);
   const quizAnsweredCount = quizStepIds.filter(
     (id) => resolvePath(stepPaths[id]!, pathAnswers[id] ?? []).result,
   ).length;
 
-  useEffect(() => {
-    if (!pathHydrated) return;
-    const seen = localStorage.getItem("almanya-onboarding-seen-v1");
-    if (!seen && quizAnsweredCount === 0) {
-      setWizardOpen(true);
-      localStorage.setItem("almanya-onboarding-seen-v1", "1");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathHydrated]);
+  function scrollToQuickTest() {
+    document.getElementById("hizli-test")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function scrollToFirstPhase() {
+    document.getElementById(phases[0]!.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const personalCosts = useMemo(() => personalizedStepCosts(pathAnswers), [pathAnswers]);
+  const personalTotal = useMemo(() => personalizedTotal(pathAnswers), [pathAnswers]);
 
   const costSteps = phases
     .flatMap((p) => p.steps)
-    .filter((s) => (stepCosts[s.id] ?? []).length > 0);
+    .filter((s) => (personalCosts[s.id] ?? []).length > 0);
 
   const totals = useMemo(() => {
     const total = allTaskIds.length;
@@ -146,8 +147,6 @@ function RoadmapPage() {
     const c = ids.filter((id) => done[id]).length;
     return { pct: ids.length ? Math.round((c / ids.length) * 100) : 0 };
   });
-
-  const docCount = Object.values(stepDocs).reduce((n, d) => n + d.length, 0);
 
   const shown = hydrated ? totals.pct : 0;
   const currentStep =
@@ -186,16 +185,23 @@ function RoadmapPage() {
               className="gate-badge h-full rounded-full transition-[width] duration-700"
               style={{ width: `${shown}%` }}
             />
-            <Plane
-              className="absolute top-1/2 size-4 -translate-y-1/2 rotate-90 text-primary transition-[left] duration-700"
+            <PlaneIcon
+              className="pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 rotate-90 text-primary transition-[left] duration-700"
               style={{ left: `calc(${shown}% - 8px)` }}
-              aria-hidden
             />
           </div>
           <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs font-semibold tracking-wide text-foreground">
             DE <GermanyFlag className="h-4 w-6 rounded-sm" title="Almanya" />
           </span>
           <span className="font-mono text-sm font-bold tabular-nums text-primary">{shown}%</span>
+          <Link
+            to="/blog"
+            title="Rehber yazılar"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 font-mono text-[0.7rem] text-foreground transition-colors hover:bg-accent"
+          >
+            <BookOpen className="size-3.5" />
+            <span className="hidden sm:inline">REHBER</span>
+          </Link>
           <button
             type="button"
             onClick={share}
@@ -204,15 +210,6 @@ function RoadmapPage() {
           >
             {shared ? <Check className="size-3.5 text-success" /> : <Share2 className="size-3.5" />}
             <span className="hidden sm:inline">{shared ? "KOPYALANDI" : "PAYLAŞ"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            title="İlerlemeyi sıfırla"
-            className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent"
-          >
-            <RotateCcw className="size-3.5" />
-            <span className="sr-only">Sıfırla</span>
           </button>
         </div>
       </div>
@@ -232,7 +229,7 @@ function RoadmapPage() {
             <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 pb-5">
               <TurkeyFlag className="h-7 w-11 rounded shadow-sm" title="Türkiye" />
               <span className="h-px flex-1 bg-flag-red/40" />
-              <Plane className="size-5 rotate-90 text-primary" aria-hidden />
+              <PlaneIcon className="size-5 rotate-90 text-primary" />
               <span className="h-px flex-1 bg-flag-red/40" />
               <GermanyFlag className="h-7 w-11 rounded shadow-sm" title="Almanya" />
             </div>
@@ -268,73 +265,76 @@ function RoadmapPage() {
             alır. İlerlemen bu cihazda otomatik saklanır.
           </p>
 
-          <button
-            type="button"
-            onClick={() => setWizardOpen(true)}
-            className="mt-6 flex w-full max-w-2xl cursor-pointer items-center gap-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3.5 text-left transition-colors hover:bg-primary/10"
+          <div
+            className={cn(
+              "mt-6 grid max-w-2xl grid-cols-1 gap-3",
+              hasProfile && "sm:grid-cols-2",
+            )}
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-              <Compass className="size-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-heading text-sm font-semibold text-foreground">
-                {quizAnsweredCount > 0
-                  ? `Hızlı testler: ${quizAnsweredCount}/${quizStepIds.length} tamamlandı`
-                  : `${quizStepIds.length} soruluk hızlı testi başta yap`}
+            <button
+              type="button"
+              onClick={scrollToQuickTest}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
+            >
+              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <UserRound className="size-4.5" />
               </span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">
-                Denklik, dil ve finansman durumunu baştan yanıtla; rota buna göre kişiselleşsin.
-              </span>
-            </span>
-            <ArrowRight className="size-4 shrink-0 text-primary" aria-hidden />
-          </button>
+              {hasProfile ? (
+                <span className="min-w-0">
+                  <span className="block truncate font-heading text-sm font-bold text-foreground">
+                    {profile.name}
+                  </span>
+                  <span className="block truncate text-[0.78rem] text-muted-foreground">
+                    {profile.email || "E-posta eklenmedi"}
+                    {profile.gpa && ` · Ort. ${profile.gpa}`}
+                  </span>
+                </span>
+              ) : (
+                <span className="min-w-0">
+                  <span className="block font-heading text-sm font-bold text-foreground">
+                    Kişisel bilgilerini ekle
+                  </span>
+                  <span className="block text-[0.78rem] text-muted-foreground">
+                    Hızlı testte adını, e-postanı ve not ortalamanı gir
+                  </span>
+                </span>
+              )}
+            </button>
 
-          <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
-            {[
-              { k: "Etap / adım", v: "5 / 17", icon: PlaneTakeoff },
-              { k: "Ara adım", v: `${totals.total}`, icon: Check },
-              { k: "Belirtilen evrak", v: `${docCount}`, icon: FileText },
-              {
-                k: "Toplam tahmini ücret",
-                v: totalEstimatedCostLabel,
-                icon: Wallet,
-                accent: "money" as const,
-                onClick: () => setCostOpen(true),
-              },
-            ].map(({ k, v, icon: Icon, onClick, accent }) => {
-              const Wrap = onClick ? "button" : "div";
-              return (
-                <Wrap
-                  key={k}
-                  type={onClick ? "button" : undefined}
-                  onClick={onClick}
-                  className={cn(
-                    "bg-card px-4 py-4 text-left",
-                    onClick && "cursor-pointer transition-colors hover:bg-accent",
-                  )}
-                >
-                  <dt className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                    <Icon
-                      className={cn("size-3.5", accent === "money" ? "text-money" : "text-primary")}
-                    />{" "}
-                    {k.toUpperCase()}
-                  </dt>
-                  <dd
-                    className={cn(
-                      "mt-1.5 font-heading text-lg font-bold tabular-nums md:text-xl",
-                      accent === "money" ? "text-money" : "text-foreground",
-                    )}
-                  >
-                    {v}
-                  </dd>
-                </Wrap>
-              );
-            })}
-          </dl>
+            <button
+              type="button"
+              onClick={() => setCostOpen(true)}
+              className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
+            >
+              <dl>
+                <dt className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                  <Wallet className="size-3.5 text-money" /> TOPLAM TAHMİNİ ÜCRET
+                </dt>
+                <dd className="mt-1.5 font-heading text-lg font-bold tabular-nums text-money md:text-xl">
+                  {personalTotal.label}
+                </dd>
+              </dl>
+            </button>
+          </div>
+
+          <div
+            id="hizli-test"
+            className="boarding-card mt-8 max-w-2xl scroll-mt-20 rounded-lg p-5 md:p-6"
+          >
+            <div className="flex items-center gap-2 font-heading text-base font-semibold text-foreground">
+              <Compass className="size-4.5 text-primary" /> Hızlı test: rotanı kişiselleştir
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Birkaç soruyu yanıtla; sonuçlar ilgili adımlarda otomatik görünür.
+            </p>
+            <div className="mt-5">
+              <OnboardingWizard onFinished={scrollToFirstPhase} />
+            </div>
+          </div>
 
           {currentStep && hydrated && (
             <p className="mt-8 inline-flex items-center gap-2 rounded-md border border-border bg-secondary/60 px-3.5 py-2 text-sm text-foreground">
-              <Plane className="size-4 text-primary" aria-hidden />
+              <PlaneIcon className="size-4 rotate-45 text-primary" />
               Sıradaki adım:{" "}
               <span className="font-semibold">
                 {String(currentStep.no).padStart(2, "0")} · {currentStep.title}
@@ -384,12 +384,98 @@ function RoadmapPage() {
         </div>
       </header>
 
+      {/* ---------- Blog teaser ---------- */}
+      <Link
+        to="/blog"
+        className="block border-b border-border bg-secondary/40 transition-colors hover:bg-secondary/60"
+      >
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex -space-x-3">
+              {blogThumbStepIds.map((id) => {
+                const img = stepImages[id];
+                if (!img) return null;
+                return (
+                  <img
+                    key={id}
+                    src={img.src}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="size-10 shrink-0 rounded-full border-2 border-background object-cover"
+                  />
+                );
+              })}
+            </div>
+            <div>
+              <p className="flex items-center gap-1.5 font-heading text-sm font-semibold text-foreground">
+                <BookOpen className="size-3.5 text-primary" /> Rehber yazılar
+              </p>
+              <p className="text-[0.8rem] text-muted-foreground">
+                Adımları derinlemesine anlatan {blogPosts.length} yazıdan{" "}
+                {blogPosts.filter(isPublished).length} tanesi yayında — sırayla keşfet.
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 shrink-0 text-primary" aria-hidden />
+        </div>
+      </Link>
+
       {/* ---------- Route ---------- */}
       <main className="mx-auto max-w-5xl px-4 pb-24">
         {phases.map((phase, pi) => {
           const accent = phaseAccent[phase.id] ?? defaultAccent;
           return (
-            <section key={phase.id} id={phase.id} className="scroll-mt-20 pt-16">
+            <Fragment key={phase.id}>
+              {pi === 0 && (
+                <div className="mt-14 flex items-center gap-3">
+                  <TurkeyFlag className="h-6 w-9 shrink-0 rounded-sm shadow-sm" title="Türkiye" />
+                  <p className="font-mono text-xs font-bold tracking-[0.2em] text-flag-red">
+                    ALMANYA'DAN ÖNCE
+                  </p>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
+
+              {pi === 3 && (
+                <div className="relative mt-16 overflow-hidden rounded-2xl border border-border">
+                  <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-flag-red/10 via-card to-foreground/5 px-5 py-8 md:px-10">
+                    <TurkeyFlag
+                      className="h-10 w-15 shrink-0 rounded shadow-sm opacity-80 md:h-12 md:w-18"
+                      title="Türkiye"
+                    />
+                    <div className="flex flex-1 items-center justify-center gap-2 md:gap-3">
+                      <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
+                      <PlaneIcon className="size-6 rotate-90 text-primary drop-shadow-sm md:size-7" />
+                      <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
+                    </div>
+                    <GermanyFlag
+                      className="stamp-in h-10 w-15 shrink-0 rounded shadow-sm md:h-12 md:w-18"
+                      title="Almanya"
+                    />
+                  </div>
+                  <div className="border-t border-border bg-secondary/40 px-5 py-4 text-center md:px-10">
+                    <p className="font-heading text-lg font-bold text-foreground md:text-xl">
+                      🎉 Artık Almanya'dasın!
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Buradan sonraki adımlar Almanya topraklarında atılıyor.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {pi === 3 && (
+                <div className="mt-10 flex items-center gap-3">
+                  <GermanyFlag className="h-6 w-9 shrink-0 rounded-sm shadow-sm" title="Almanya" />
+                  <p className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
+                    ALMANYA'DA
+                  </p>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
+
+              <section id={phase.id} className="scroll-mt-20 pt-16">
               <div className="flex items-center gap-4 border-b border-border pb-5">
                 <span
                   className={cn(
@@ -418,13 +504,12 @@ function RoadmapPage() {
                 {/* dotted flight route + moving plane */}
                 <div className="pointer-events-none absolute inset-y-0 left-0 w-12 md:left-1/2 md:w-28 md:-translate-x-1/2">
                   <FlightPath className="h-full w-full" />
-                  <Plane
+                  <PlaneIcon
                     className={cn(
-                      "absolute left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rotate-[135deg] drop-shadow-sm transition-[top] duration-700",
+                      "absolute left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rotate-180 drop-shadow-sm transition-[top] duration-700",
                       accent.text,
                     )}
                     style={{ top: `${hydrated ? (phaseStats[pi]?.pct ?? 0) : 0}%` }}
-                    aria-hidden
                   />
                 </div>
 
@@ -434,8 +519,9 @@ function RoadmapPage() {
                     return (
                       <li
                         key={step.id}
+                        id={step.id}
                         className={cn(
-                          "relative pl-14 md:w-[calc(50%-3.5rem)] md:pl-0",
+                          "relative scroll-mt-20 pl-14 md:w-[calc(50%-3.5rem)] md:pl-0",
                           right && "md:ml-auto",
                         )}
                       >
@@ -485,6 +571,7 @@ function RoadmapPage() {
                 </div>
               )}
             </section>
+            </Fragment>
           );
         })}
 
@@ -507,7 +594,15 @@ function RoadmapPage() {
       </main>
 
       <footer className="border-t border-border bg-card py-8">
-        <p className="mx-auto max-w-2xl px-4 text-center text-sm leading-relaxed text-muted-foreground">
+        <p className="text-center">
+          <Link
+            to="/blog"
+            className="cursor-pointer font-mono text-xs tracking-wide text-primary underline-offset-4 hover:underline"
+          >
+            Rehber yazılar →
+          </Link>
+        </p>
+        <p className="mx-auto mt-4 max-w-2xl px-4 text-center text-sm leading-relaxed text-muted-foreground">
           Tutarlar, süreler ve şartlar tahminîdir; resmî bilgi için üniversite, konsolosluk ve
           Ausländerbehörde duyurularını esas al.
         </p>
@@ -522,20 +617,6 @@ function RoadmapPage() {
         </p>
       </footer>
 
-      <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
-        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-heading">
-              <Compass className="size-4.5 text-primary" /> Hızlı test: rotanı kişiselleştir
-            </DialogTitle>
-            <DialogDescription>
-              Birkaç soruyu yanıtla; sonuçlar ilgili adımlarda otomatik görünür.
-            </DialogDescription>
-          </DialogHeader>
-          <OnboardingWizard onFinished={() => setWizardOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={costOpen} onOpenChange={setCostOpen}>
         <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
           <DialogHeader>
@@ -543,10 +624,54 @@ function RoadmapPage() {
               <Wallet className="size-4.5 text-money" /> Ücret kalemleri
             </DialogTitle>
             <DialogDescription>
-              Toplam tahmini:{" "}
-              <span className="font-semibold text-money">{totalEstimatedCostLabel}</span>
+              Sana özel toplam tahmini:{" "}
+              <span className="font-semibold text-money">{personalTotal.label}</span>
             </DialogDescription>
           </DialogHeader>
+
+          <div className="rounded-md border border-border bg-secondary/40 p-4">
+            <p className="font-heading text-sm font-semibold text-foreground">
+              Kendine göre daralt
+            </p>
+            <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
+              Aşağıdakileri yanıtlarsan toplam, senin durumuna göre daralır — yanıtsız sorular en
+              geniş ihtimali (aralığın üst sınırını) gösterir.
+            </p>
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                  DİL KURSU (ADIM 02)
+                </p>
+                <div className="mt-2">
+                  <PathFinder stepId="s2" />
+                </div>
+              </div>
+              <div>
+                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                  FİNANSMAN: GARANTÖR / BLOKE HESAP (ADIM 07)
+                </p>
+                <div className="mt-2">
+                  <PathFinder stepId="s7" />
+                </div>
+              </div>
+              <div>
+                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                  KONAKLAMA (ADIM 11)
+                </p>
+                <div className="mt-2">
+                  <PathFinder stepId="s11" />
+                </div>
+              </div>
+              <div>
+                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                  ÜNİVERSİTE TÜRÜ (ADIM 15)
+                </p>
+                <div className="mt-2">
+                  <PathFinder stepId="s15" />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="rounded-md border border-money/30 bg-money/10 p-4">
             <p className="flex items-center gap-2 font-heading text-sm font-semibold text-foreground">
@@ -569,25 +694,24 @@ function RoadmapPage() {
                   ADIM {String(step.no).padStart(2, "0")} · {step.title}
                 </p>
                 <div className="mt-2 overflow-hidden rounded-md border border-border">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {stepCosts[step.id]!.map((c) => (
-                        <tr key={c.label} className="border-b border-border last:border-0">
-                          <td className="px-3 py-2.5 align-top">
-                            <span className="block text-foreground">{c.label}</span>
-                            {c.note && (
-                              <span className="mt-0.5 block text-[0.78rem] text-muted-foreground">
-                                {c.note}
-                              </span>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2.5 text-right align-top font-mono text-[0.8rem] tabular-nums text-money">
-                            {c.amount}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <ul>
+                    {personalCosts[step.id]!.map((c) => (
+                      <li
+                        key={c.label}
+                        className="border-b border-border px-3 py-2.5 last:border-0"
+                      >
+                        <span className="block text-foreground">{c.label}</span>
+                        {c.note && (
+                          <span className="mt-0.5 block text-[0.78rem] text-muted-foreground">
+                            {c.note}
+                          </span>
+                        )}
+                        <span className="mt-1 block text-right font-mono text-[0.8rem] tabular-nums text-money">
+                          {c.amount}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ))}
