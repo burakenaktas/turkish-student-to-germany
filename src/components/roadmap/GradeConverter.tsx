@@ -1,14 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
+import { computeGermanGrade, formatGrade, gradeLabel } from "@/lib/grade";
 import { cn } from "@/lib/utils";
-
-function label(grade: number) {
-  if (grade <= 1.5) return "sehr gut (çok iyi)";
-  if (grade <= 2.5) return "gut (iyi)";
-  if (grade <= 3.5) return "befriedigend (orta)";
-  if (grade <= 4.0) return "ausreichend (yeterli)";
-  return "nicht ausreichend (yetersiz)";
-}
 
 /** Locks Nmax/Nmin to a known scale so the visitor only enters their own score. */
 export type GradePreset = {
@@ -30,9 +23,7 @@ export function GradeConverter({ onResult, preset }: Props) {
     const nd = parseFloat(avg.replace(",", "."));
     const max = parseFloat(nmax.replace(",", "."));
     const min = parseFloat(nmin.replace(",", "."));
-    if (![nd, max, min].every((n) => Number.isFinite(n)) || max <= min) return null;
-    const raw = 1 + (3 * (max - nd)) / (max - min);
-    return Math.min(Math.max(raw, 1), 5);
+    return computeGermanGrade(nd, max, min);
   }, [avg, nmax, nmin]);
 
   useEffect(() => {
@@ -100,9 +91,9 @@ export function GradeConverter({ onResult, preset }: Props) {
         {result !== null ? (
           <>
             <p className="font-heading text-2xl font-bold tabular-nums text-foreground">
-              {result.toFixed(1).replace(".", ",")}
+              {formatGrade(result)}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">{label(result)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{gradeLabel(result)}</p>
           </>
         ) : (
           <p className="text-sm text-muted-foreground">

@@ -1,36 +1,27 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, GraduationCap, Mail, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, GraduationCap, UserRound } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
+import { computeGermanGrade, formatGrade, YKS_NMAX, YKS_NMIN } from "@/lib/grade";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type Props = { onDone: () => void };
 
-const YKS_NMAX = 560;
-const YKS_NMIN = 180;
-
-function computeGrade(score: number): number | null {
-  if (!Number.isFinite(score)) return null;
-  const raw = 1 + (3 * (YKS_NMAX - score)) / (YKS_NMAX - YKS_NMIN);
-  return Math.min(Math.max(raw, 1), 5);
-}
-
-const totalSteps = 3;
+const totalSteps = 2;
 
 export function ProfileStep({ onDone }: Props) {
   const { profile, setProfile } = useProfile();
   const [step, setStep] = useState(0);
-  const [email, setEmail] = useState(profile.email);
   const [name, setName] = useState(profile.name);
-  const [score, setScore] = useState("");
+  const [score, setScore] = useState(profile.yksScore);
 
-  const grade = computeGrade(parseFloat(score.replace(",", ".")));
+  const grade = computeGermanGrade(parseFloat(score.replace(",", ".")), YKS_NMAX, YKS_NMIN);
 
-  function save(next: Partial<{ email: string; name: string; gpa: string }>) {
+  function save(next: Partial<{ name: string; gpa: string; yksScore: string }>) {
     setProfile({
-      email: next.email ?? email,
       name: next.name ?? name,
       gpa: next.gpa ?? profile.gpa,
+      yksScore: next.yksScore ?? profile.yksScore,
     });
   }
 
@@ -39,7 +30,7 @@ export function ProfileStep({ onDone }: Props) {
       setStep((s) => s + 1);
       return;
     }
-    save({ gpa: grade !== null ? grade.toFixed(1).replace(".", ",") : "" });
+    save({ gpa: grade !== null ? formatGrade(grade) : "", yksScore: score });
     onDone();
   }
 
@@ -78,26 +69,6 @@ export function ProfileStep({ onDone }: Props) {
         {step === 0 && (
           <div>
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Mail className="size-4 text-primary" /> E-postanı gir
-            </p>
-            <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
-              Sadece bu cihazda saklanır, hiçbir yere gönderilmez.
-            </p>
-            <Input
-              type="email"
-              autoFocus
-              className="mt-3"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && next()}
-              placeholder="ornek@eposta.com"
-            />
-          </div>
-        )}
-
-        {step === 1 && (
-          <div>
-            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <UserRound className="size-4 text-primary" /> Adın ne?
             </p>
             <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
@@ -114,7 +85,7 @@ export function ProfileStep({ onDone }: Props) {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 1 && (
           <div>
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <GraduationCap className="size-4 text-primary" /> Üniversite yerleştirme puanını yaz
@@ -137,8 +108,7 @@ export function ProfileStep({ onDone }: Props) {
                 <span className="landed-badge grid size-5 shrink-0 place-items-center rounded-full">
                   <Check className="size-3" strokeWidth={3} />
                 </span>
-                NC karşılığın:{" "}
-                <span className="font-semibold">{grade.toFixed(1).replace(".", ",")}</span>
+                NC karşılığın: <span className="font-semibold">{formatGrade(grade)}</span>
               </p>
             )}
           </div>

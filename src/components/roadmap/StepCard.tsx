@@ -28,6 +28,7 @@ import { GradeConverter } from "@/components/roadmap/GradeConverter";
 import { ChecklistBlock } from "@/components/roadmap/ChecklistBlock";
 import { ComparisonList } from "@/components/roadmap/ComparisonList";
 import { usePathAnswers } from "@/hooks/use-path-answers";
+import { useProfile } from "@/hooks/use-profile";
 import { resolvePath } from "@/lib/path-resolver";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
   const photo = stepImages[step.id];
 
   const { answers } = usePathAnswers();
+  const { profile } = useProfile();
   const pathRoot = stepPaths[step.id];
   const pathResult = pathRoot ? resolvePath(pathRoot, answers[step.id] ?? []).result : undefined;
   const notApplicable = new Set(pathResult?.notApplicable ?? []);
@@ -58,9 +60,10 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
   const comparison = stepComparisons[step.id];
 
   function toolFor(taskId: string): { type: "path" | "grade"; label: string } | null {
-    if (pathTaskId[step.id] === taskId && stepPaths[step.id])
+    if (pathTaskId[step.id] === taskId && stepPaths[step.id] && !pathResult)
       return { type: "path", label: "Yol testi" };
-    if (taskId === gradeConverterTaskId) return { type: "grade", label: "Not çevirici" };
+    if (taskId === gradeConverterTaskId && !profile.gpa)
+      return { type: "grade", label: "Not çevirici" };
     return null;
   }
 
@@ -258,6 +261,11 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
                           )}
                           {tool.label}
                         </button>
+                      )}
+                      {!tool && task.id === gradeConverterTaskId && profile.gpa && (
+                        <span className="gold-badge mt-2 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap">
+                          <Calculator className="size-3" /> NC: {profile.gpa}
+                        </span>
                       )}
                     </div>
 

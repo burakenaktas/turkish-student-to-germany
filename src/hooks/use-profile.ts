@@ -2,9 +2,9 @@ import { useCallback, useSyncExternalStore } from "react";
 
 const KEY = "almanya-roadmap-profile-v1";
 
-export type Profile = { name: string; email: string; gpa: string };
+export type Profile = { name: string; gpa: string; yksScore: string };
 
-const empty: Profile = { name: "", email: "", gpa: "" };
+const empty: Profile = { name: "", gpa: "", yksScore: "" };
 
 function readStore(): Profile {
   try {

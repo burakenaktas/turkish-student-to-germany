@@ -281,9 +281,9 @@ function RoadmapPage() {
             Türkiye'den Almanya'ya öğrenci rotası
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            Denklikten oturum kartına kadar tüm süreç sıralı adımlara bölündü. Her adımda ara
-            kontrol listeleri, gereken evraklar ve nereden alınacağı, ayrıca tahmini ücretler yer
-            alır. İlerlemen bu cihazda otomatik saklanır.
+            Başvuru sürecinin başından Almanya'da öğrenci oturum kartı alana kadar tüm süreç sıralı
+            adımlara bölündü. Her adımda ara kontrol listeleri, gereken evraklar ve nereden
+            alınacağı, ayrıca tahmini ücretler yer alır. İlerlemen bu cihazda otomatik saklanır.
           </p>
 
           {(hasProfile || gatePassed) && (
@@ -306,10 +306,11 @@ function RoadmapPage() {
                     <span className="block truncate font-heading text-sm font-bold text-foreground">
                       {profile.name}
                     </span>
-                    <span className="block truncate text-[0.78rem] text-muted-foreground">
-                      {profile.email || "E-posta eklenmedi"}
-                      {profile.gpa && ` · Ort. ${profile.gpa}`}
-                    </span>
+                    {profile.gpa && (
+                      <span className="block truncate text-[0.78rem] text-muted-foreground">
+                        Ort. {profile.gpa}
+                      </span>
+                    )}
                   </span>
                 </button>
               )}

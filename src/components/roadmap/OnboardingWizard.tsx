@@ -1,9 +1,18 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Compass, RotateCcw, TrendingDown } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Compass,
+  Lightbulb,
+  PartyPopper,
+  RotateCcw,
+  TrendingDown,
+} from "lucide-react";
 import { allSteps } from "@/data/roadmap";
 import { stepPaths } from "@/data/roadmap-paths";
 import {
   costLabelFor,
+  costSavingTips,
   eur,
   formatRange,
   personalizedStepCosts,
@@ -84,6 +93,8 @@ export function OnboardingWizard({ onFinished, onProfileDone }: Props) {
       ? costLabelFor(personalizedStepCosts(answers)[activeStepId!] ?? [])
       : null;
 
+  const showCompletion = allAnswered && isLastQuestion;
+
   return (
     <div>
       <div className="flex items-center gap-3">
@@ -95,7 +106,7 @@ export function OnboardingWizard({ onFinished, onProfileDone }: Props) {
             ROTA TESTİ · {Math.min(cursor + 1, quizStepIds.length)}/{quizStepIds.length}
           </p>
           <p className="truncate text-sm font-semibold text-foreground">
-            Adım {step.no} · {step.title}
+            {showCompletion ? "Tamamlandı" : `Adım ${step.no} · ${step.title}`}
           </p>
         </div>
       </div>
@@ -118,77 +129,138 @@ export function OnboardingWizard({ onFinished, onProfileDone }: Props) {
         })}
       </div>
 
-      <div className="mt-6">
-        {resolved?.result ? (
-          <PathResultCard result={resolved.result} costLabel={currentStepCostLabel} />
-        ) : resolved?.current ? (
-          <div>
-            <p className="text-sm font-semibold text-foreground">{resolved.current.question}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {resolved.current.options.map((opt, i) => (
+      {showCompletion ? (
+        <CompletionScreen answers={answers} onFinished={onFinished} onResetAll={resetAll} />
+      ) : (
+        <>
+          <div className="mt-6">
+            {resolved?.result ? (
+              <PathResultCard result={resolved.result} costLabel={currentStepCostLabel} />
+            ) : resolved?.current ? (
+              <div>
+                <p className="text-sm font-semibold text-foreground">{resolved.current.question}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {resolved.current.options.map((opt, i) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => choose(i)}
+                      className="cursor-pointer rounded-md border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-accent"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+            <button
+              type="button"
+              onClick={goBack}
+              disabled={cursor === 0 && choices.length === 0}
+              className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ArrowLeft className="size-3.5" /> Geri
+            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={resetAll}
+                className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-destructive"
+              >
+                <RotateCcw className="size-3.5" /> Tümünü sıfırla
+              </button>
+              {!isLastQuestion && resolved?.result && (
                 <button
-                  key={opt.label}
                   type="button"
-                  onClick={() => choose(i)}
-                  className="cursor-pointer rounded-md border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/50 hover:bg-accent"
+                  onClick={() => setCursor((c) => c + 1)}
+                  className="gate-badge cursor-pointer rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold"
                 >
-                  {opt.label}
+                  Sıradaki soru
                 </button>
-              ))}
+              )}
             </div>
           </div>
-        ) : null}
+
+          {!allAnswered && doneCount > 0 && (
+            <p className="mt-4 text-[0.72rem] leading-relaxed text-muted-foreground">
+              {doneCount}/{quizStepIds.length} soru yanıtlandı. Cevapların ilgili adımlarda otomatik
+              işaretlenir; sonuçlar tahminîdir.
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function CompletionScreen({
+  answers,
+  onFinished,
+  onResetAll,
+}: {
+  answers: Record<string, number[]>;
+  onFinished?: (() => void) | undefined;
+  onResetAll: () => void;
+}) {
+  const tips = useMemo(() => costSavingTips.slice(0, 3), []);
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-3 rounded-lg border border-success/30 bg-success/8 px-4 py-3.5">
+        <span className="landed-badge grid size-9 shrink-0 place-items-center rounded-full">
+          <PartyPopper className="size-4.5" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-heading text-sm font-semibold text-foreground">
+            Tüm sorular tamamlandı!
+          </p>
+          <p className="mt-0.5 text-[0.8rem] leading-relaxed text-muted-foreground">
+            Cevapların rotana işlendi; sana özel tahmini ücret aşağıda.
+          </p>
+        </div>
+      </div>
+
+      <AnimatedCostCompare answers={answers} />
+
+      <div className="mt-5 rounded-lg border border-border bg-secondary/40 p-4">
+        <p className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+          <Lightbulb className="size-3.5 text-primary" /> ÜCRETİ AZALTMAK İÇİN ÖNERİLER
+        </p>
+        <ul className="mt-3 space-y-3">
+          {tips.map((tip) => (
+            <li key={tip.title}>
+              <p className="text-sm font-semibold text-foreground">{tip.title}</p>
+              <p className="mt-0.5 text-[0.8rem] leading-relaxed text-muted-foreground">
+                {tip.text}
+              </p>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
         <button
           type="button"
-          onClick={goBack}
-          disabled={cursor === 0 && choices.length === 0}
-          className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+          onClick={onResetAll}
+          className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-destructive"
         >
-          <ArrowLeft className="size-3.5" /> Geri
+          <RotateCcw className="size-3.5" /> Tümünü sıfırla
         </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={resetAll}
-            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-destructive"
-          >
-            <RotateCcw className="size-3.5" /> Tümünü sıfırla
-          </button>
-          {!isLastQuestion && resolved?.result && (
-            <button
-              type="button"
-              onClick={() => setCursor((c) => c + 1)}
-              className="gate-badge cursor-pointer rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold"
-            >
-              Sıradaki soru
-            </button>
-          )}
-          {isLastQuestion && resolved?.result && (
-            <button
-              type="button"
-              onClick={onFinished}
-              className="gate-badge cursor-pointer rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold"
-            >
-              Rotamı göster
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={onFinished}
+          className="gate-badge cursor-pointer rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold"
+        >
+          Rotamı Takip Etmeye Başla <ArrowRight className="ml-1 inline size-3.5" />
+        </button>
       </div>
-
-      {allAnswered ? (
-        <AnimatedCostCompare answers={answers} />
-      ) : (
-        doneCount > 0 && (
-          <p className="mt-4 text-[0.72rem] leading-relaxed text-muted-foreground">
-            {doneCount}/{quizStepIds.length} soru yanıtlandı. Cevapların ilgili adımlarda otomatik
-            işaretlenir; sonuçlar tahminîdir.
-          </p>
-        )
-      )}
+      <p className="mt-3 text-center text-[0.72rem] leading-relaxed text-muted-foreground">
+        Aşağıda rotanı takip etmeye şimdi başlayabilirsin.
+      </p>
     </div>
   );
 }
