@@ -52,7 +52,11 @@ export const stepCosts: Record<string, CostItem[]> = {
     { label: "Aylık hesap işletim ücreti", amount: "0 – 5 € / ay" },
   ],
   s8: [
-    { label: "Seyahat sağlık sigortası (vize için)", amount: "30 – 80 €" },
+    {
+      label: "Seyahat sağlık sigortası (vize için)",
+      amount: "0 – 80 €",
+      note: "Expatrio/Fintiba gibi bloke hesap + sigorta paketinde genelde ücretsiz gelir; ayrı alırsan bu aralık geçerli",
+    },
     {
       label: "Öğrenci sağlık sigortası",
       amount: "≈ 120 – 145 € / ay",
@@ -340,17 +344,17 @@ export const stepDocs: Record<string, DocItem[]> = {
   ],
   s8: [
     {
-      name: "Seyahat sağlık sigortası poliçesi",
-      how: "Türkiye'deki sigorta şirketinden Schengen/ulusal vize uyumlu poliçe; teminat en az 30.000 €.",
-    },
-    {
       name: "Öğrenci sağlık sigortası onayı",
-      how: "TK / AOK / Barmer online başvurusu; kabul mektubu ve pasaport yüklenir.",
+      how: "TK / AOK / Barmer online başvurusu; kabul mektubu ve pasaport yüklenir. Expatrio/Fintiba gibi bloke hesap paketiyle başvurursan vize için gereken geçici sigorta genelde pakete dahil gelir.",
       links: [
         { label: "TK", url: "https://www.tk.de" },
         { label: "AOK", url: "https://www.aok.de" },
         { label: "Barmer", url: "https://www.barmer.de" },
       ],
+    },
+    {
+      name: "Seyahat sağlık sigortası poliçesi (paketsizsen)",
+      how: "Bloke hesabını sigorta paketiyle almadıysan, Türkiye'deki bir sigorta şirketinden Schengen/ulusal vize uyumlu poliçe al; teminat en az 30.000 €.",
     },
     {
       name: "M10 sigorta bildirimi",
@@ -494,8 +498,8 @@ export const stepComparisons: Record<string, { title: string; rows: ComparisonRo
       {
         name: "Seyahat sağlık sigortası",
         detail:
-          "Vize başvurusu için gerekli. En az 30.000 € tıbbi kapsam, tüm Schengen bölgesinde geçerli olmalı.",
-        note: "≈ 30–80 € · Allianz, HDI, Ergo, Groupama gibi sağlayıcılardan tek seferlik alınır",
+          "Vize başvurusu için gerekli; en az 30.000 € tıbbi kapsam, tüm Schengen bölgesinde geçerli olmalı. Zaten üniversiteye kayıt olacaksan Expatrio/Fintiba gibi bir bloke hesap + sigorta paketiyle yasal sigortana başvur — bu genelde ücretsiz gelir, ayrı almana gerek kalmaz.",
+        note: "Paketsizse ≈ 30–80 € · Allianz, HDI, Ergo, Groupama gibi sağlayıcılardan tek seferlik alınır",
       },
       {
         name: "Yasal öğrenci sigortası (TK, AOK, Barmer)",

@@ -1,21 +1,51 @@
 import { useState } from "react";
-import { ArrowRight, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, GraduationCap, Mail, UserRound } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { GradeConverter } from "@/components/roadmap/GradeConverter";
+import { cn } from "@/lib/utils";
 
 type Props = { onDone: () => void };
 
+const YKS_NMAX = 560;
+const YKS_NMIN = 180;
+
+function computeGrade(score: number): number | null {
+  if (!Number.isFinite(score)) return null;
+  const raw = 1 + (3 * (YKS_NMAX - score)) / (YKS_NMAX - YKS_NMIN);
+  return Math.min(Math.max(raw, 1), 5);
+}
+
+const totalSteps = 3;
+
 export function ProfileStep({ onDone }: Props) {
   const { profile, setProfile } = useProfile();
-  const [name, setName] = useState(profile.name);
+  const [step, setStep] = useState(0);
   const [email, setEmail] = useState(profile.email);
-  const [gpa, setGpa] = useState(profile.gpa);
+  const [name, setName] = useState(profile.name);
+  const [score, setScore] = useState("");
 
-  function submit() {
-    setProfile({ name: name.trim(), email: email.trim(), gpa: gpa.trim() });
+  const grade = computeGrade(parseFloat(score.replace(",", ".")));
+
+  function save(next: Partial<{ email: string; name: string; gpa: string }>) {
+    setProfile({
+      email: next.email ?? email,
+      name: next.name ?? name,
+      gpa: next.gpa ?? profile.gpa,
+    });
+  }
+
+  function next() {
+    if (step < totalSteps - 1) {
+      setStep((s) => s + 1);
+      return;
+    }
+    save({ gpa: grade !== null ? grade.toFixed(1).replace(".", ",") : "" });
     onDone();
+  }
+
+  function back() {
+    if (step === 0) return;
+    setStep((s) => s - 1);
   }
 
   return (
@@ -26,76 +56,119 @@ export function ProfileStep({ onDone }: Props) {
         </span>
         <div className="min-w-0">
           <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-            HIZLI TEST · BAŞLANGIÇ
+            ROTA TESTİ · {step + 1}/{totalSteps}
           </p>
           <p className="truncate text-sm font-semibold text-foreground">Önce seni tanıyalım</p>
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-        Rotanı senin adına kişiselleştirelim. Bu bilgiler sadece bu cihazda saklanır, hiçbir yere
-        gönderilmez.
-      </p>
+      <div className="mt-3 flex gap-1.5">
+        {Array.from({ length: totalSteps }).map((_, i) => (
+          <span
+            key={i}
+            className={cn(
+              "h-1.5 flex-1 rounded-full transition-colors",
+              i < step ? "gate-badge" : i === step ? "bg-primary/40" : "bg-secondary",
+            )}
+          />
+        ))}
+      </div>
 
-      <div className="mt-5 space-y-4">
-        <div>
-          <Label htmlFor="profile-name">Ad Soyad</Label>
-          <Input
-            id="profile-name"
-            className="mt-1.5"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Örn. Ayşe Yılmaz"
-          />
-        </div>
-        <div>
-          <Label htmlFor="profile-email">E-posta</Label>
-          <Input
-            id="profile-email"
-            type="email"
-            className="mt-1.5"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ornek@eposta.com"
-          />
-        </div>
-        <div>
-          <Label>NC karşılaştırman için</Label>
-          <p className="mt-1 text-[0.75rem] text-muted-foreground">
-            Sadece YKS yerleştirme puanını gir; Alman not karşılığını (NC ile kıyaslanabilecek hale)
-            arkada biz hesaplarız.
-          </p>
-          <div className="mt-2.5 rounded-md border border-border bg-secondary/30 p-3.5">
-            <GradeConverter
-              preset={{
-                nmax: 560,
-                nmin: 180,
-                scoreLabel: "YKS YERLEŞTİRME PUANIN",
-                title: "YKS puanına göre NC hesaplayıcı",
-                description:
-                  "YKS yerleştirme puanını gir, Bavyera formülüyle Alman not karşılığını hesaplayalım.",
-              }}
-              onResult={(grade) => setGpa(grade !== null ? grade.toFixed(1).replace(".", ",") : "")}
+      <div key={step} className="step-in mt-6">
+        {step === 0 && (
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Mail className="size-4 text-primary" /> E-postanı gir
+            </p>
+            <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
+              Sadece bu cihazda saklanır, hiçbir yere gönderilmez.
+            </p>
+            <Input
+              type="email"
+              autoFocus
+              className="mt-3"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && next()}
+              placeholder="ornek@eposta.com"
             />
           </div>
-        </div>
+        )}
+
+        {step === 1 && (
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <UserRound className="size-4 text-primary" /> Adın ne?
+            </p>
+            <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
+              Sana nasıl hitap edelim?
+            </p>
+            <Input
+              autoFocus
+              className="mt-3"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && next()}
+              placeholder="Örn. Ayşe Yılmaz"
+            />
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <GraduationCap className="size-4 text-primary" /> Üniversite yerleştirme puanını yaz
+            </p>
+            <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
+              NC'ni (Numerus Clausus karşılığını) biz hesaplayalım.
+            </p>
+            <Input
+              type="number"
+              inputMode="decimal"
+              autoFocus
+              className="mt-3"
+              value={score}
+              onChange={(e) => setScore(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && next()}
+              placeholder="Örn. 420"
+            />
+            {grade !== null && score.trim() !== "" && (
+              <p className="mt-3 flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-2.5 text-sm text-foreground">
+                <span className="landed-badge grid size-5 shrink-0 place-items-center rounded-full">
+                  <Check className="size-3" strokeWidth={3} />
+                </span>
+                NC karşılığın:{" "}
+                <span className="font-semibold">{grade.toFixed(1).replace(".", ",")}</span>
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+        {step === 0 ? (
+          <button
+            type="button"
+            onClick={onDone}
+            className="cursor-pointer font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Atla
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={back}
+            className="inline-flex cursor-pointer items-center gap-1.5 font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" /> Geri
+          </button>
+        )}
         <button
           type="button"
-          onClick={onDone}
-          className="cursor-pointer font-mono text-[0.7rem] text-muted-foreground transition-colors hover:text-foreground"
+          onClick={next}
+          className="gate-badge inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold"
         >
-          Atla
-        </button>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={!name.trim()}
-          className="gate-badge inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3.5 py-2 font-mono text-[0.7rem] font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Devam et <ArrowRight className="size-3.5" />
+          {step === totalSteps - 1 ? "Bitir" : "Devam et"} <ArrowRight className="size-3.5" />
         </button>
       </div>
     </div>

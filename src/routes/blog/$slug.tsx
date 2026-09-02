@@ -178,8 +178,8 @@ function BlogPostPage() {
               <MessageCircleHeart className="size-4.5" />
             </span>
             <p className="text-sm leading-relaxed text-foreground">
-              Baştan sona yapılacakları ücretsiz bir şekilde Almanya'da Okuyorum danışmanıyla web
-              sitemiz üzerinden takip et.
+              Baştan sona yapılacakları ücretsiz bir şekilde Almanya'da Okumak İstiyorum
+              danışmanıyla web sitemiz üzerinden takip et.
             </p>
           </div>
           <Link

@@ -225,14 +225,19 @@ export const phases: Phase[] = [
         no: 8,
         title: "Sağlık Sigortası",
         subtitle:
-          "Vize için seyahat sigortası, kayıt için yasal öğrenci sağlık sigortası (Krankenversicherung).",
+          "Zaten üniversiteye kayıt olacaksan doğrudan yasal öğrenci sigortasına (TK, AOK, Barmer) başvur — vize için gereken geçici sigorta çoğu bloke hesap paketinde ücretsiz gelir.",
         duration: "1 hafta",
         tasks: [
-          { id: "s8t1", label: "Vize dosyası için seyahat sağlık sigortası yaptır" },
+          {
+            id: "s8t1",
+            label: "Yasal öğrenci sigortası (TK, AOK, Barmer vb.) başvurunu şimdiden başlat",
+            hint: "Zaten kayıt olacağın için doğrudan yasal sigortaya başvurmak en güvenli ve ekonomik yol. Expatrio/Fintiba gibi bloke hesap paketleri seçersen, vize için gereken geçici sigorta (Incoming Insurance) genelde ücretsiz gelir.",
+            articleUrl: "/blog/yasal-mi-ozel-mi-saglik-sigortasi",
+          },
           {
             id: "s8t2",
-            label: "Yasal sigorta (TK, AOK, Barmer vb.) başvurusunu başlat",
-            articleUrl: "/blog/yasal-mi-ozel-mi-saglik-sigortasi",
+            label: "Paket kullanmıyorsan vize için ayrı geçici seyahat sigortası al",
+            hint: "Bloke hesabını sigorta paketiyle açmadıysan (örn. sadece bankadan açtıysan), konsolosluk en az 30.000 € kapsamlı ayrı bir seyahat sağlık sigortası ister.",
           },
           { id: "s8t3", label: "Üniversiteye gidecek sigorta bildirimini (M10) talep et" },
           {

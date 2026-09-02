@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   PlaneLanding,
   Share2,
@@ -10,6 +10,7 @@ import {
   Compass,
   BookOpen,
   UserRound,
+  Lock,
 } from "lucide-react";
 import { PlaneIcon } from "@/components/roadmap/PlaneIcon";
 import { phases, allTaskIds, allSteps } from "@/data/roadmap";
@@ -21,7 +22,6 @@ import { StepCard } from "@/components/roadmap/StepCard";
 import { FlightPath } from "@/components/roadmap/FlightPath";
 import { TurkeyFlag, GermanyFlag } from "@/components/roadmap/Flags";
 import { OnboardingWizard } from "@/components/roadmap/OnboardingWizard";
-import { PathFinder } from "@/components/roadmap/PathFinder";
 import { useProgress } from "@/hooks/use-progress";
 import { usePathAnswers } from "@/hooks/use-path-answers";
 import { useProfile } from "@/hooks/use-profile";
@@ -108,6 +108,7 @@ const phaseAccent: Record<string, Accent> = {
 const defaultAccent: Accent = phaseAccent["faz5"]!;
 
 const blogThumbStepIds = ["s1", "s7", "s11", "s15"];
+const GATE_KEY = "almanya-onboarding-gate-v1";
 
 function RoadmapPage() {
   const { done, hydrated, toggle, setMany } = useProgress();
@@ -115,6 +116,25 @@ function RoadmapPage() {
   const { profile, hasProfile } = useProfile();
   const [shared, setShared] = useState(false);
   const [costOpen, setCostOpen] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [gatePassed, setGatePassed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setGatePassed(localStorage.getItem(GATE_KEY) === "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function passGate() {
+    setGatePassed(true);
+    try {
+      localStorage.setItem(GATE_KEY, "1");
+    } catch {
+      /* ignore quota errors */
+    }
+  }
 
   const quizStepIds = useMemo(() => allSteps.map((s) => s.id).filter((id) => stepPaths[id]), []);
   const quizAnsweredCount = quizStepIds.filter(
@@ -122,6 +142,7 @@ function RoadmapPage() {
   ).length;
 
   function scrollToQuickTest() {
+    setGateOpen(true);
     document.getElementById("hizli-test")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -265,72 +286,106 @@ function RoadmapPage() {
             alır. İlerlemen bu cihazda otomatik saklanır.
           </p>
 
-          <div
-            className={cn(
-              "mt-6 grid max-w-2xl grid-cols-1 gap-3",
-              hasProfile && "sm:grid-cols-2",
-            )}
-          >
-            <button
-              type="button"
-              onClick={scrollToQuickTest}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
-            >
-              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                <UserRound className="size-4.5" />
-              </span>
-              {hasProfile ? (
-                <span className="min-w-0">
-                  <span className="block truncate font-heading text-sm font-bold text-foreground">
-                    {profile.name}
-                  </span>
-                  <span className="block truncate text-[0.78rem] text-muted-foreground">
-                    {profile.email || "E-posta eklenmedi"}
-                    {profile.gpa && ` · Ort. ${profile.gpa}`}
-                  </span>
-                </span>
-              ) : (
-                <span className="min-w-0">
-                  <span className="block font-heading text-sm font-bold text-foreground">
-                    Kişisel bilgilerini ekle
-                  </span>
-                  <span className="block text-[0.78rem] text-muted-foreground">
-                    Hızlı testte adını, e-postanı ve not ortalamanı gir
-                  </span>
-                </span>
+          {(hasProfile || gatePassed) && (
+            <div
+              className={cn(
+                "mt-6 grid max-w-2xl grid-cols-1 gap-3",
+                hasProfile && gatePassed && "sm:grid-cols-2",
               )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCostOpen(true)}
-              className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
             >
-              <dl>
-                <dt className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                  <Wallet className="size-3.5 text-money" /> TOPLAM TAHMİNİ ÜCRET
-                </dt>
-                <dd className="mt-1.5 font-heading text-lg font-bold tabular-nums text-money md:text-xl">
-                  {personalTotal.label}
-                </dd>
-              </dl>
-            </button>
-          </div>
+              {hasProfile && (
+                <button
+                  type="button"
+                  onClick={scrollToQuickTest}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
+                >
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <UserRound className="size-4.5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate font-heading text-sm font-bold text-foreground">
+                      {profile.name}
+                    </span>
+                    <span className="block truncate text-[0.78rem] text-muted-foreground">
+                      {profile.email || "E-posta eklenmedi"}
+                      {profile.gpa && ` · Ort. ${profile.gpa}`}
+                    </span>
+                  </span>
+                </button>
+              )}
 
-          <div
-            id="hizli-test"
-            className="boarding-card mt-8 max-w-2xl scroll-mt-20 rounded-lg p-5 md:p-6"
-          >
-            <div className="flex items-center gap-2 font-heading text-base font-semibold text-foreground">
-              <Compass className="size-4.5 text-primary" /> Hızlı test: rotanı kişiselleştir
+              {gatePassed && (
+                <button
+                  type="button"
+                  onClick={() => setCostOpen(true)}
+                  className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-4 text-left transition-colors hover:bg-accent"
+                >
+                  <dl>
+                    <dt className="flex items-center gap-1.5 font-mono text-[0.68rem] tracking-wide text-muted-foreground">
+                      <Wallet className="size-3.5 text-money" /> TOPLAM TAHMİNİ ÜCRET
+                    </dt>
+                    <dd className="mt-1.5 font-heading text-lg font-bold tabular-nums text-money md:text-xl">
+                      {personalTotal.label}
+                    </dd>
+                  </dl>
+                </button>
+              )}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Birkaç soruyu yanıtla; sonuçlar ilgili adımlarda otomatik görünür.
-            </p>
-            <div className="mt-5">
-              <OnboardingWizard onFinished={scrollToFirstPhase} />
+          )}
+
+          {gateOpen || gatePassed ? (
+            <div
+              id="hizli-test"
+              className="boarding-card panel-in mt-8 max-w-2xl scroll-mt-20 rounded-lg p-5 md:p-6"
+            >
+              <div className="flex items-center gap-2 font-heading text-base font-semibold text-foreground">
+                <Compass className="size-4.5 text-primary" /> Rotanı kişiselleştir
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Birkaç soruyu yanıtla; sonuçlar ilgili adımlarda otomatik görünür.
+              </p>
+              <div className="mt-5">
+                <OnboardingWizard onFinished={scrollToFirstPhase} onProfileDone={passGate} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div
+              id="hizli-test"
+              className="gate-badge mt-8 max-w-2xl scroll-mt-20 rounded-lg p-5 text-center md:p-6"
+            >
+              <span className="mx-auto grid size-11 place-items-center rounded-full bg-background/25">
+                <Compass className="size-5.5" />
+              </span>
+              <p className="mt-3 font-heading text-base font-semibold">
+                Rotanı kişiselleştirmeye hazır mısın?
+              </p>
+              <p className="mx-auto mt-1.5 max-w-md text-sm opacity-90">
+                Birkaç soruyu yanıtla; adımlar ve tahmini ücret sana göre şekillensin. Aşağıdaki
+                rota bunu tamamlayınca açılır.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setGateOpen(true);
+                  requestAnimationFrame(() =>
+                    document
+                      .getElementById("hizli-test")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  );
+                }}
+                className="mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-background/90 px-5 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-background"
+              >
+                Yol Haritanı Hemen Oluştur <ArrowRight className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={passGate}
+                className="mt-3 block w-full cursor-pointer text-xs opacity-80 transition-opacity hover:opacity-100"
+              >
+                Şimdilik atla, rotayı olduğu gibi gör
+              </button>
+            </div>
+          )}
 
           {currentStep && hydrated && (
             <p className="mt-8 inline-flex items-center gap-2 rounded-md border border-border bg-secondary/60 px-3.5 py-2 text-sm text-foreground">
@@ -425,152 +480,186 @@ function RoadmapPage() {
       <main className="mx-auto max-w-5xl px-4 pb-24">
         {phases.map((phase, pi) => {
           const accent = phaseAccent[phase.id] ?? defaultAccent;
+          const locked = !gatePassed && pi >= 1;
           return (
             <Fragment key={phase.id}>
-              {pi === 0 && (
-                <div className="mt-14 flex items-center gap-3">
-                  <TurkeyFlag className="h-6 w-9 shrink-0 rounded-sm shadow-sm" title="Türkiye" />
-                  <p className="font-mono text-xs font-bold tracking-[0.2em] text-flag-red">
-                    ALMANYA'DAN ÖNCE
-                  </p>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              )}
-
-              {pi === 3 && (
-                <div className="relative mt-16 overflow-hidden rounded-2xl border border-border">
-                  <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-flag-red/10 via-card to-foreground/5 px-5 py-8 md:px-10">
-                    <TurkeyFlag
-                      className="h-10 w-15 shrink-0 rounded shadow-sm opacity-80 md:h-12 md:w-18"
-                      title="Türkiye"
-                    />
-                    <div className="flex flex-1 items-center justify-center gap-2 md:gap-3">
-                      <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
-                      <PlaneIcon className="size-6 rotate-90 text-primary drop-shadow-sm md:size-7" />
-                      <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
-                    </div>
-                    <GermanyFlag
-                      className="stamp-in h-10 w-15 shrink-0 rounded shadow-sm md:h-12 md:w-18"
-                      title="Almanya"
-                    />
-                  </div>
-                  <div className="border-t border-border bg-secondary/40 px-5 py-4 text-center md:px-10">
-                    <p className="font-heading text-lg font-bold text-foreground md:text-xl">
-                      🎉 Artık Almanya'dasın!
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Buradan sonraki adımlar Almanya topraklarında atılıyor.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {pi === 3 && (
-                <div className="mt-10 flex items-center gap-3">
-                  <GermanyFlag className="h-6 w-9 shrink-0 rounded-sm shadow-sm" title="Almanya" />
-                  <p className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
-                    ALMANYA'DA
-                  </p>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              )}
-
-              <section id={phase.id} className="scroll-mt-20 pt-16">
-              <div className="flex items-center gap-4 border-b border-border pb-5">
-                <span
+              <div className={cn(pi === 1 && "relative")}>
+                {pi === 1 && !gatePassed && (
+                  <>
+                    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-32 bg-gradient-to-b from-background via-background/85 to-transparent" />
+                    <button
+                      type="button"
+                      onClick={scrollToQuickTest}
+                      className="absolute inset-x-0 top-8 z-30 mx-auto flex w-fit cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-md transition-colors hover:bg-accent"
+                    >
+                      <Lock className="size-3.5" /> Kilidi açmak için testi tamamla
+                    </button>
+                  </>
+                )}
+                <div
+                  aria-hidden={locked}
                   className={cn(
-                    "grid size-11 shrink-0 place-items-center rounded-md border font-mono text-sm font-bold",
-                    accent.border,
-                    accent.bg,
-                    accent.text,
+                    "transition-[filter] duration-500",
+                    locked && "pointer-events-none blur-md select-none",
                   )}
                 >
-                  {String(phase.no).padStart(2, "0")}
-                </span>
-                <div>
-                  <p className={cn("font-mono text-[0.68rem] tracking-[0.2em]", accent.text)}>
-                    ETAP {String(phase.no).padStart(2, "0")}
-                  </p>
-                  <h2 className="font-heading text-xl font-bold text-foreground md:text-2xl">
-                    {phase.name}
-                  </h2>
-                </div>
-                <span className="ml-auto font-mono text-sm tabular-nums text-muted-foreground">
-                  {hydrated ? (phaseStats[pi]?.pct ?? 0) : 0}%
-                </span>
-              </div>
+                  {pi === 0 && (
+                    <div className="mt-14 flex items-center gap-3">
+                      <TurkeyFlag
+                        className="h-6 w-9 shrink-0 rounded-sm shadow-sm"
+                        title="Türkiye"
+                      />
+                      <p className="font-mono text-xs font-bold tracking-[0.2em] text-flag-red">
+                        ALMANYA'DAN ÖNCE
+                      </p>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                  )}
 
-              <div className="relative mt-10">
-                {/* dotted flight route + moving plane */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-12 md:left-1/2 md:w-28 md:-translate-x-1/2">
-                  <FlightPath className="h-full w-full" />
-                  <PlaneIcon
-                    className={cn(
-                      "absolute left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rotate-180 drop-shadow-sm transition-[top] duration-700",
-                      accent.text,
-                    )}
-                    style={{ top: `${hydrated ? (phaseStats[pi]?.pct ?? 0) : 0}%` }}
-                  />
-                </div>
+                  {pi === 3 && (
+                    <div className="relative mt-16 overflow-hidden rounded-2xl border border-border">
+                      <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-flag-red/10 via-card to-foreground/5 px-5 py-8 md:px-10">
+                        <TurkeyFlag
+                          className="h-10 w-15 shrink-0 rounded shadow-sm opacity-80 md:h-12 md:w-18"
+                          title="Türkiye"
+                        />
+                        <div className="flex flex-1 items-center justify-center gap-2 md:gap-3">
+                          <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
+                          <PlaneIcon className="size-6 rotate-90 text-primary drop-shadow-sm md:size-7" />
+                          <span className="route-drift h-px flex-1 border-t border-dashed border-primary/40" />
+                        </div>
+                        <GermanyFlag
+                          className="stamp-in h-10 w-15 shrink-0 rounded shadow-sm md:h-12 md:w-18"
+                          title="Almanya"
+                        />
+                      </div>
+                      <div className="border-t border-border bg-secondary/40 px-5 py-4 text-center md:px-10">
+                        <p className="font-heading text-lg font-bold text-foreground md:text-xl">
+                          🎉 Artık Almanya'dasın!
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Buradan sonraki adımlar Almanya topraklarında atılıyor.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                <ol className="space-y-6">
-                  {phase.steps.map((step, si) => {
-                    const right = si % 2 === 1;
-                    return (
-                      <li
-                        key={step.id}
-                        id={step.id}
+                  {pi === 3 && (
+                    <div className="mt-10 flex items-center gap-3">
+                      <GermanyFlag
+                        className="h-6 w-9 shrink-0 rounded-sm shadow-sm"
+                        title="Almanya"
+                      />
+                      <p className="font-mono text-xs font-bold tracking-[0.2em] text-foreground">
+                        ALMANYA'DA
+                      </p>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                  )}
+
+                  <section id={phase.id} className="scroll-mt-20 pt-16">
+                    <div className="flex items-center gap-4 border-b border-border pb-5">
+                      <span
                         className={cn(
-                          "relative scroll-mt-20 pl-14 md:w-[calc(50%-3.5rem)] md:pl-0",
-                          right && "md:ml-auto",
+                          "grid size-11 shrink-0 place-items-center rounded-md border font-mono text-sm font-bold",
+                          accent.border,
+                          accent.bg,
+                          accent.text,
                         )}
                       >
-                        <span
-                          className={cn(
-                            "absolute top-7 z-10 grid size-6 place-items-center rounded-full border border-border bg-card font-mono text-[0.6rem] font-bold text-muted-foreground",
-                            "left-[12px] md:left-auto",
-                            right ? "md:-left-[1rem]" : "md:-right-[1rem]",
-                          )}
-                          aria-hidden
-                        >
-                          {step.no}
-                        </span>
-                        <StepCard step={step} done={done} onToggle={toggle} onSetMany={setMany} />
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
+                        {String(phase.no).padStart(2, "0")}
+                      </span>
+                      <div>
+                        <p className={cn("font-mono text-[0.68rem] tracking-[0.2em]", accent.text)}>
+                          ETAP {String(phase.no).padStart(2, "0")}
+                        </p>
+                        <h2 className="font-heading text-xl font-bold text-foreground md:text-2xl">
+                          {phase.name}
+                        </h2>
+                      </div>
+                      <span className="ml-auto font-mono text-sm tabular-nums text-muted-foreground">
+                        {hydrated ? (phaseStats[pi]?.pct ?? 0) : 0}%
+                      </span>
+                    </div>
 
-              {pi === phases.length - 1 && (
-                <div className="boarding-card mt-16 rounded-lg p-8 text-center md:p-10">
-                  <GermanyFlag
-                    className="mx-auto h-12 w-18 rounded shadow-sm"
-                    title="Almanya bayrağı — varış"
-                  />
-                  <p className="mt-4 inline-flex items-center gap-2 font-mono text-[0.68rem] tracking-[0.2em] text-muted-foreground">
-                    <PlaneLanding className="size-4 text-primary" /> VARIŞ · ALMANYA
-                  </p>
-                  <h2 className="mt-3 font-heading text-xl font-bold text-foreground md:text-2xl">
-                    Rota tamamlandığında
-                  </h2>
-                  <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                    17 adımın tamamı işaretlendiğinde elinde oturum kartın, öğrenci kimliğin ve bir
-                    Alman üniversitesinde kayıtlı kontenjanın olur.
-                  </p>
-                  <p
-                    className={cn(
-                      "mt-6 inline-block rounded-md px-5 py-2 font-mono text-sm font-bold",
-                      totals.pct === 100
-                        ? "landed-badge stamp-in"
-                        : "border border-border bg-secondary text-foreground",
+                    <div className="relative mt-10">
+                      {/* dotted flight route + moving plane */}
+                      <div className="pointer-events-none absolute inset-y-0 left-0 w-12 md:left-1/2 md:w-28 md:-translate-x-1/2">
+                        <FlightPath className="h-full w-full" />
+                        <PlaneIcon
+                          className={cn(
+                            "absolute left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rotate-180 drop-shadow-sm transition-[top] duration-700",
+                            accent.text,
+                          )}
+                          style={{ top: `${hydrated ? (phaseStats[pi]?.pct ?? 0) : 0}%` }}
+                        />
+                      </div>
+
+                      <ol className="space-y-6">
+                        {phase.steps.map((step, si) => {
+                          const right = si % 2 === 1;
+                          return (
+                            <li
+                              key={step.id}
+                              id={step.id}
+                              className={cn(
+                                "relative scroll-mt-20 pl-14 md:w-[calc(50%-3.5rem)] md:pl-0",
+                                right && "md:ml-auto",
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "absolute top-7 z-10 grid size-6 place-items-center rounded-full border border-border bg-card font-mono text-[0.6rem] font-bold text-muted-foreground",
+                                  "left-[12px] md:left-auto",
+                                  right ? "md:-left-[1rem]" : "md:-right-[1rem]",
+                                )}
+                                aria-hidden
+                              >
+                                {step.no}
+                              </span>
+                              <StepCard
+                                step={step}
+                                done={done}
+                                onToggle={toggle}
+                                onSetMany={setMany}
+                              />
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    </div>
+
+                    {pi === phases.length - 1 && (
+                      <div className="boarding-card mt-16 rounded-lg p-8 text-center md:p-10">
+                        <GermanyFlag
+                          className="mx-auto h-12 w-18 rounded shadow-sm"
+                          title="Almanya bayrağı — varış"
+                        />
+                        <p className="mt-4 inline-flex items-center gap-2 font-mono text-[0.68rem] tracking-[0.2em] text-muted-foreground">
+                          <PlaneLanding className="size-4 text-primary" /> VARIŞ · ALMANYA
+                        </p>
+                        <h2 className="mt-3 font-heading text-xl font-bold text-foreground md:text-2xl">
+                          Rota tamamlandığında
+                        </h2>
+                        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                          17 adımın tamamı işaretlendiğinde elinde oturum kartın, öğrenci kimliğin
+                          ve bir Alman üniversitesinde kayıtlı kontenjanın olur.
+                        </p>
+                        <p
+                          className={cn(
+                            "mt-6 inline-block rounded-md px-5 py-2 font-mono text-sm font-bold",
+                            totals.pct === 100
+                              ? "landed-badge stamp-in"
+                              : "border border-border bg-secondary text-foreground",
+                          )}
+                        >
+                          {totals.pct === 100 ? "ROTA TAMAMLANDI" : `${shown}% TAMAMLANDI`}
+                        </p>
+                      </div>
                     )}
-                  >
-                    {totals.pct === 100 ? "ROTA TAMAMLANDI" : `${shown}% TAMAMLANDI`}
-                  </p>
+                  </section>
                 </div>
-              )}
-            </section>
+              </div>
             </Fragment>
           );
         })}
@@ -634,43 +723,45 @@ function RoadmapPage() {
               Kendine göre daralt
             </p>
             <p className="mt-1 text-[0.8rem] leading-relaxed text-muted-foreground">
-              Aşağıdakileri yanıtlarsan toplam, senin durumuna göre daralır — yanıtsız sorular en
-              geniş ihtimali (aralığın üst sınırını) gösterir.
+              Cevapların testten geliyor; orada güncelleyince toplam burada da otomatik değişir.
             </p>
-            <div className="mt-4 space-y-4">
-              <div>
-                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                  DİL KURSU (ADIM 02)
-                </p>
-                <div className="mt-2">
-                  <PathFinder stepId="s2" />
-                </div>
-              </div>
-              <div>
-                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                  FİNANSMAN: GARANTÖR / BLOKE HESAP (ADIM 07)
-                </p>
-                <div className="mt-2">
-                  <PathFinder stepId="s7" />
-                </div>
-              </div>
-              <div>
-                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                  KONAKLAMA (ADIM 11)
-                </p>
-                <div className="mt-2">
-                  <PathFinder stepId="s11" />
-                </div>
-              </div>
-              <div>
-                <p className="font-mono text-[0.68rem] tracking-wide text-muted-foreground">
-                  ÜNİVERSİTE TÜRÜ (ADIM 15)
-                </p>
-                <div className="mt-2">
-                  <PathFinder stepId="s15" />
-                </div>
-              </div>
-            </div>
+            <ul className="mt-3 space-y-2">
+              {(
+                [
+                  { id: "s2", label: "Dil kursu (Adım 02)" },
+                  { id: "s7", label: "Finansman: garantör / bloke hesap (Adım 07)" },
+                  { id: "s11", label: "Konaklama (Adım 11)" },
+                  { id: "s15", label: "Üniversite türü (Adım 15)" },
+                ] as const
+              ).map(({ id, label }) => {
+                const answered = !!resolvePath(stepPaths[id]!, pathAnswers[id] ?? []).result;
+                return (
+                  <li key={id} className="flex items-center gap-2 text-sm">
+                    <span
+                      className={cn(
+                        "grid size-4 shrink-0 place-items-center rounded-full",
+                        answered ? "landed-badge" : "border border-border",
+                      )}
+                    >
+                      {answered && <Check className="size-2.5" strokeWidth={3} />}
+                    </span>
+                    <span className={answered ? "text-foreground" : "text-muted-foreground"}>
+                      {label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              type="button"
+              onClick={() => {
+                setCostOpen(false);
+                scrollToQuickTest();
+              }}
+              className="gate-badge mt-4 inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-semibold"
+            >
+              Testi aç <ArrowRight className="size-3.5" />
+            </button>
           </div>
 
           <div className="rounded-md border border-money/30 bg-money/10 p-4">

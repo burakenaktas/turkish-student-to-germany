@@ -46,7 +46,7 @@ export const stepPaths: Record<string, PathQuestion> = {
           question: "YKS yerleştirme sonucun, başvuracağın bölümle aynı alanda mı?",
           options: [
             {
-              label: "Evet, aynı alanda yerleştim",
+              label: "Evet, benzer alanda yerleştim",
               result: {
                 title: "Muhtemelen doğrudan lisans başvurusu (H+)",
                 text: "Denkliğin muhtemelen doğrudan kabul için yeterli. Studienkolleg gerekmeden başvuru evraklarına geçebilirsin; yine de üniversitenin kendi şartını kontrol et.",

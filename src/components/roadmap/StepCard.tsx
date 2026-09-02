@@ -319,18 +319,16 @@ export function StepCard({ step, done, onToggle, onSetMany }: Props) {
             {costs.length > 0 && (
               <div className="rounded-lg bg-money/6 p-4">
                 <p className="font-mono text-[0.7rem] tracking-wide text-money">TAHMİNİ ÜCRET</p>
-                <ul className="mt-3 space-y-3">
+                <ul className="mt-3 space-y-3.5">
                   {costs.map((c) => (
-                    <li key={c.label} className="flex items-start justify-between gap-3">
-                      <span className="min-w-0">
-                        <span className="block text-sm text-foreground">{c.label}</span>
-                        {c.note && (
-                          <span className="mt-0.5 block text-[0.78rem] leading-relaxed text-muted-foreground">
-                            {c.note}
-                          </span>
-                        )}
-                      </span>
-                      <span className="shrink-0 text-sm font-semibold tabular-nums text-money">
+                    <li key={c.label}>
+                      <span className="block text-sm text-foreground">{c.label}</span>
+                      {c.note && (
+                        <span className="mt-0.5 block text-[0.78rem] leading-relaxed text-muted-foreground">
+                          {c.note}
+                        </span>
+                      )}
+                      <span className="mt-1 block text-sm font-semibold tabular-nums text-money">
                         {c.amount}
                       </span>
                     </li>

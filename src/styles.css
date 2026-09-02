@@ -308,6 +308,36 @@
   animation: cloud-drift 18s ease-in-out infinite alternate;
 }
 
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility panel-in {
+  animation: panel-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@utility step-in {
+  animation: step-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 html {
   scroll-behavior: smooth;
 }

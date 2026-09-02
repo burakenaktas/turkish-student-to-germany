@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 const WHATSAPP_NUMBER = "491773167286";
 const WHATSAPP_MESSAGE =
-  "Merhaba almanyadaokuyorum.com'dan ulaşıyorum sizlere şu konuda bir sorum var: ";
+  "Merhaba almanyadaokumakistiyorum.com'dan ulaşıyorum sizlere şu konuda bir sorum var: ";
 const WHATSAPP_CAPTION =
   "Sitedeki herhangi bir bilgi güncellemesi veya site hakkında sorular için ulaşabilirsiniz.";
 const DISMISS_KEY = "almanya-whatsapp-caption-dismissed-v1";
